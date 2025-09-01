@@ -1,42 +1,93 @@
-// app/expenses/page.tsx
 "use client";
-import { useState } from "react";
+
+import { useState, useMemo } from "react";
 import expensesData from "../data/expenses.json";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
+
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export default function ExpensesPage() {
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("date");
   const [search, setSearch] = useState("");
 
-  let filtered = category === "All"
-    ? [...expensesData]
-    : expensesData.filter((exp) => exp.category === category);
+  // Filter + Search + Sort
+  const filteredExpenses = useMemo(() => {
+    let data = [...expensesData];
 
-  if (search) {
-    filtered = filtered.filter((exp) =>
-      exp.title.toLowerCase().includes(search.toLowerCase())
-    );
-  }
+    if (category !== "All") {
+      data = data.filter((exp) => exp.category === category);
+    }
 
-  if (sortBy === "date") {
-    filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  } else if (sortBy === "amount") {
-    filtered.sort((a, b) => b.amount - a.amount);
-  }
+    if (search) {
+      data = data.filter((exp) =>
+        exp.title.toLowerCase().includes(search.toLowerCase())
+      );
+    }
 
-  const total = filtered.reduce((sum, exp) => sum + exp.amount, 0);
-  const highest = filtered.reduce(
+    if (sortBy === "date") {
+      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    } else if (sortBy === "amount") {
+      data.sort((a, b) => b.amount - a.amount);
+    }
+
+    return data;
+  }, [category, sortBy, search]);
+
+  // Summary
+  const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+  const highest = filteredExpenses.reduce(
     (max, exp) => (exp.amount > max ? exp.amount : max),
     0
   );
-  const count = filtered.length;
+
+  // Prepare chart data (category-wise)
+  const chartData = useMemo(() => {
+    const data: { name: string; value: number }[] = [];
+    const categories = Array.from(new Set(filteredExpenses.map((e) => e.category)));
+    categories.forEach((cat) => {
+      const sum = filteredExpenses
+        .filter((e) => e.category === cat)
+        .reduce((acc, e) => acc + e.amount, 0);
+      data.push({ name: cat, value: sum });
+    });
+    return data;
+  }, [filteredExpenses]);
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-2xl font-bold text-center">Expenses Tracker</h1>
+    <div className="font-sans min-h-screen p-8 space-y-8 bg-gray-50">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Expenses Tracker
+        </h1>
+      </div>
+      {/* Summary Section */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-15">
+        <div className="bg-blue-100 p-6 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-semibold">Total Expenses</h2>
+          <p className="text-2xl font-bold">Rs. {total}</p>
+        </div>
+
+        <div className="bg-green-100 p-6 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-semibold">Highest Expense</h2>
+          <p className="text-2xl font-bold">Rs.{highest}</p>
+        </div>
+
+        <div className="bg-purple-100 p-6 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-semibold">Expense Count</h2>
+          <p className="text-2xl font-bold">{filteredExpenses.length}</p>
+        </div>
+      </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-15">
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -66,37 +117,55 @@ export default function ExpensesPage() {
         />
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-blue-100 p-6 rounded-2xl shadow text-center">
-          <h2 className="text-lg font-semibold">Total Expenses</h2>
-          <p className="text-2xl font-bold">Rs. {total}</p>
-        </div>
-
-        <div className="bg-green-100 p-6 rounded-2xl shadow text-center">
-          <h2 className="text-lg font-semibold">Highest Expense</h2>
-          <p className="text-2xl font-bold">Rs. {highest}</p>
-        </div>
-
-        <div className="bg-purple-100 p-6 rounded-2xl shadow text-center">
-          <h2 className="text-lg font-semibold">Expense Count</h2>
-          <p className="text-2xl font-bold">{count}</p>
-        </div>
-      </div>
-
-      {/* Expenses list */}
+      {/* Expenses Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.length > 0 ? (
-          filtered.map((exp) => (
-            <div key={exp.id} className="bg-white p-5 rounded-2xl shadow">
-              <h3 className="text-xl font-semibold">{exp.title}</h3>
-              <p className="text-sm text-gray-500">{exp.category}</p>
-              <p className="text-lg font-bold mt-2">Rs. {exp.amount}</p>
-              <p className="text-xs text-gray-400">{new Date(exp.date).toDateString()}</p>
+        {filteredExpenses.length > 0 ? (
+          filteredExpenses.map((exp) => (
+            <div
+              key={exp.id}
+              className="bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col p-5 hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 relative overflow-hidden"
+            >
+              {/* Top accent */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-l to-red-950 rounded-t-2xl"></div>
+
+              <h3 className="text-xl font-semibold text-gray-900 mt-2">{exp.title}</h3>
+              <p className="text-sm font-medium text-gray-500 uppercase">{exp.category}</p>
+              <p className="text-2xl font-bold mt-4 text-gray-800">Rs.{exp.amount}</p>
+              <p className="text-sm text-gray-400 mt-2">{new Date(exp.date).toDateString()}</p>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500 col-span-full">No expenses found.</p>
+          <p className="text-center text-gray-500 col-span-full">
+            No expenses found.
+          </p>
+        )}
+      </div>
+
+      {/* Category Breakdown Chart */}
+      <div className="bg-white p-6 rounded-2xl shadow">
+        <h3 className="text-lg font-semibold mb-4 text-center">Category Breakdown</h3>
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={100}
+                fill="#8884d8"
+                label
+              >
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-Rs-${index}`} fill={COLORS[index % COLORS.length]} />
+
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-center text-gray-500">No data to display.</p>
         )}
       </div>
     </div>
