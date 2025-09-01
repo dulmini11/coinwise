@@ -5,6 +5,11 @@ import expensesData from "../data/expenses.json";
 
 export default function ExpensesPage() {
   const total = expensesData.reduce((sum, exp) => sum + exp.amount, 0);
+  const highest = expensesData.reduce(
+    (max, exp) => (exp.amount > max ? exp.amount : max),
+    0
+  );
+  const count = expensesData.length;
 
   return (
     <div className="p-8 space-y-6">
@@ -15,6 +20,16 @@ export default function ExpensesPage() {
         <div className="bg-blue-100 p-6 rounded-2xl shadow text-center">
           <h2 className="text-lg font-semibold">Total Expenses</h2>
           <p className="text-2xl font-bold">Rs. {total}</p>
+        </div>
+
+        <div className="bg-green-100 p-6 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-semibold">Highest Expense</h2>
+          <p className="text-2xl font-bold">Rs. {highest}</p>
+        </div>
+
+        <div className="bg-purple-100 p-6 rounded-2xl shadow text-center">
+          <h2 className="text-lg font-semibold">Expense Count</h2>
+          <p className="text-2xl font-bold">{count}</p>
         </div>
       </div>
     </div>
