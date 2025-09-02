@@ -12,17 +12,25 @@ import {
 } from "recharts";
 import Image from "next/image";
 import cancel from "../../public/cancel.png"; 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+
 
 export default function ExpensesPage() {
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("date");
   const [search, setSearch] = useState("");
-
-  // ✅ Local state for expenses
   const [expenses, setExpenses] = useState<any[]>([]);
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-  // ✅ Load from localStorage OR fallback to expensesData
+  // Form state
+  const [newExpense, setNewExpense] = useState({
+    title: "",
+    amount: "",
+    category: "Food",
+    date: "",
+  });
+  const [showForm, setShowForm] = useState(false);
+
+  // Load expenses from localStorage or fallback
   useEffect(() => {
     const stored = localStorage.getItem("expenses");
     if (stored) {
@@ -33,58 +41,55 @@ export default function ExpensesPage() {
     }
   }, []);
 
-  // ✅ Save to localStorage whenever expenses change
+  // Save expenses to localStorage on change
   useEffect(() => {
     localStorage.setItem("expenses", JSON.stringify(expenses));
   }, [expenses]);
 
-  // ✅ Remove handler
+  // Remove expense
   const handleRemove = (id: number) => {
     setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+  };
+
+  // Add new expense
+  const handleAddExpense = () => {
+    if (!newExpense.title || !newExpense.amount || !newExpense.date) return;
+
+    const id = Date.now(); // unique ID
+    const expense = {
+      id,
+      title: newExpense.title,
+      amount: parseFloat(newExpense.amount),
+      category: newExpense.category,
+      date: newExpense.date,
+    };
+    setExpenses((prev) => [expense, ...prev]);
+    setNewExpense({ title: "", amount: "", category: "Food", date: "" });
+    setShowForm(false);
   };
 
   // Filter + Search + Sort
   const filteredExpenses = useMemo(() => {
     let data = [...expenses];
-
-    if (category !== "All") {
-      data = data.filter((exp) => exp.category === category);
-    }
-
-    if (search) {
-      data = data.filter((exp) =>
-        exp.title.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    if (sortBy === "date") {
-      data.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-    } else if (sortBy === "amount") {
-      data.sort((a, b) => b.amount - a.amount);
-    }
-
+    if (category !== "All") data = data.filter((exp) => exp.category === category);
+    if (search) data = data.filter((exp) => exp.title.toLowerCase().includes(search.toLowerCase()));
+    if (sortBy === "date") data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    else if (sortBy === "amount") data.sort((a, b) => b.amount - a.amount);
     return data;
   }, [expenses, category, sortBy, search]);
 
   // Summary
   const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const highest = filteredExpenses.reduce(
-    (max, exp) => (exp.amount > max ? exp.amount : max),
-    0
-  );
+    (max, exp) => (exp.amount > max ? exp.amount : max), 0);
+  const count = filteredExpenses.length;
 
   // Chart Data
   const chartData = useMemo(() => {
     const data: { name: string; value: number }[] = [];
-    const categories = Array.from(
-      new Set(filteredExpenses.map((e) => e.category))
-    );
+    const categories = Array.from(new Set(filteredExpenses.map((e) => e.category)));
     categories.forEach((cat) => {
-      const sum = filteredExpenses
-        .filter((e) => e.category === cat)
-        .reduce((acc, e) => acc + e.amount, 0);
+      const sum = filteredExpenses.filter((e) => e.category === cat).reduce((acc, e) => acc + e.amount, 0);
       data.push({ name: cat, value: sum });
     });
     return data;
@@ -93,11 +98,62 @@ export default function ExpensesPage() {
   return (
     <div className="font-sans min-h-screen p-8 space-y-8 bg-gray-50">
       {/* Page Title */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Expenses Tracker
-        </h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Expenses Tracker</h1>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+        >
+          {showForm ? "Cancel" : "Add Expense"}
+        </button>
       </div>
+
+      {/* Add Expense Form */}
+      {showForm && (
+        <div className="bg-white p-6 rounded-2xl shadow mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input
+              type="text"
+              placeholder="Title"
+              value={newExpense.title}
+              onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
+              className="border p-2 rounded-lg"
+            />
+            <input
+              type="number"
+              placeholder="Amount"
+              value={newExpense.amount}
+              onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+              className="border p-2 rounded-lg"
+            />
+            <select
+              value={newExpense.category}
+              onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+              className="border p-2 rounded-lg"
+            >
+              <option value="Food">Food</option>
+              <option value="Travel">Travel</option>
+              <option value="Health">Health</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Education">Education</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Entertainment">Entertainment</option>
+            </select>
+            <input
+              type="date"
+              value={newExpense.date}
+              onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+              className="border p-2 rounded-lg"
+            />
+          </div>
+          <button
+            onClick={handleAddExpense}
+            className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+          >
+            Add Expense
+          </button>
+        </div>
+      )}
 
       {/* Summary Section */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-15">
