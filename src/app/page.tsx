@@ -15,11 +15,19 @@ import cancel from "../../public/cancel.png";
 
 
 export default function ExpensesPage() {
-  const [category, setCategory] = useState("All");
+  // States
+  const [categories, setCategories] = useState<string[]>([
+    "Food",
+    "Travel",
+    "Shopping",
+  ]);
+  const [category, setCategory] = useState<string>("All"); // for filtering
+  const [newCategory, setNewCategory] = useState<string>("");
+
   const [sortBy, setSortBy] = useState("date");
   const [search, setSearch] = useState("");
   const [expenses, setExpenses] = useState<any[]>([]);
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+    const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   // Form state
   const [newExpense, setNewExpense] = useState({
@@ -29,6 +37,14 @@ export default function ExpensesPage() {
     date: "",
   });
   const [showForm, setShowForm] = useState(false);
+
+  // Add new category
+  const handleAddCategory = () => {
+    if (newCategory.trim() !== "" && !categories.includes(newCategory)) {
+      setCategories([...categories, newCategory]);
+      setNewCategory("");
+    }
+  };
 
   // Load expenses from localStorage or fallback
   useEffect(() => {
@@ -71,9 +87,17 @@ export default function ExpensesPage() {
   // Filter + Search + Sort
   const filteredExpenses = useMemo(() => {
     let data = [...expenses];
-    if (category !== "All") data = data.filter((exp) => exp.category === category);
-    if (search) data = data.filter((exp) => exp.title.toLowerCase().includes(search.toLowerCase()));
-    if (sortBy === "date") data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (category !== "All")
+      data = data.filter((exp) => exp.category === category);
+    if (search)
+      data = data.filter((exp) =>
+        exp.title.toLowerCase().includes(search.toLowerCase())
+      );
+    if (sortBy === "date")
+      data.sort(
+        (a, b) =>
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
     else if (sortBy === "amount") data.sort((a, b) => b.amount - a.amount);
     return data;
   }, [expenses, category, sortBy, search]);
@@ -81,15 +105,20 @@ export default function ExpensesPage() {
   // Summary
   const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const highest = filteredExpenses.reduce(
-    (max, exp) => (exp.amount > max ? exp.amount : max), 0);
-  const count = filteredExpenses.length;
+    (max, exp) => (exp.amount > max ? exp.amount : max),
+    0
+  );
 
   // Chart Data
   const chartData = useMemo(() => {
     const data: { name: string; value: number }[] = [];
-    const categories = Array.from(new Set(filteredExpenses.map((e) => e.category)));
-    categories.forEach((cat) => {
-      const sum = filteredExpenses.filter((e) => e.category === cat).reduce((acc, e) => acc + e.amount, 0);
+    const uniqueCats = Array.from(
+      new Set(filteredExpenses.map((e) => e.category))
+    );
+    uniqueCats.forEach((cat) => {
+      const sum = filteredExpenses
+        .filter((e) => e.category === cat)
+        .reduce((acc, e) => acc + e.amount, 0);
       data.push({ name: cat, value: sum });
     });
     return data;
@@ -99,7 +128,9 @@ export default function ExpensesPage() {
     <div className="font-sans min-h-screen p-8 space-y-8 bg-gray-50">
       {/* Page Title */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Expenses Tracker</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Expenses Tracker
+        </h1>
         <button
           onClick={() => setShowForm(!showForm)}
           className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
@@ -116,29 +147,54 @@ export default function ExpensesPage() {
               type="text"
               placeholder="Title"
               value={newExpense.title}
-              onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
+              onChange={(e) =>
+                setNewExpense({ ...newExpense, title: e.target.value })
+              }
               className="border p-2 rounded-lg"
             />
             <input
               type="number"
               placeholder="Amount"
               value={newExpense.amount}
-              onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+              onChange={(e) =>
+                setNewExpense({ ...newExpense, amount: e.target.value })
+              }
               className="border p-2 rounded-lg"
             />
-            <select
-              value={newExpense.category}
-              onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
-              className="border p-2 rounded-lg"
-            >
-              <option value="Food">Food</option>
-              <option value="Travel">Travel</option>
-              <option value="Health">Health</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Education">Education</option>
-              <option value="Utilities">Utilities</option>
-              <option value="Entertainment">Entertainment</option>
-            </select>
+            <div>
+              {/* Category Selector */}
+              <select
+                value={newExpense.category}
+                onChange={(e) =>
+                  setNewExpense({ ...newExpense, category: e.target.value })
+                }
+                className="border p-2 rounded-lg w-full"
+              >
+                {categories.map((cat, index) => (
+                  <option key={index} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+
+              {/* Add Category */}
+              <div className="flex items-center gap-2 mt-2">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  placeholder="New Category"
+                  className="border p-2 rounded-lg flex-1"
+                />
+                <button
+                  onClick={handleAddCategory}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
             <input
               type="date"
               value={newExpense.date}
@@ -181,9 +237,11 @@ export default function ExpensesPage() {
           className="border p-2 rounded-lg"
         >
           <option value="All">All Categories</option>
-          <option value="Food">Food</option>
-          <option value="Travel">Travel</option>
-          <option value="Shopping">Shopping</option>
+          {categories.map((cat, index) => (
+            <option key={index} value={cat}>
+              {cat}
+            </option>
+          ))}
         </select>
 
         <select
@@ -215,7 +273,7 @@ export default function ExpensesPage() {
               {/* Top accent */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-l to-red-950 rounded-t-2xl"></div>
 
-              {/*  Remove button (lucide-react X) */}
+              {/*  Remove button */}
               <button
                 onClick={() => handleRemove(exp.id)}
                 className="absolute top-3 right-3 text-gray-400 hover:text-red-600"
