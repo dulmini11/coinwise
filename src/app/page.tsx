@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import expensesData from "../data/expenses.json";
 import {
   PieChart,
@@ -10,7 +10,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-
+import Image from "next/image";
+import cancel from "../../public/cancel.png"; 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
 export default function ExpensesPage() {
@@ -18,9 +19,33 @@ export default function ExpensesPage() {
   const [sortBy, setSortBy] = useState("date");
   const [search, setSearch] = useState("");
 
+  // ✅ Local state for expenses
+  const [expenses, setExpenses] = useState<any[]>([]);
+
+  // ✅ Load from localStorage OR fallback to expensesData
+  useEffect(() => {
+    const stored = localStorage.getItem("expenses");
+    if (stored) {
+      setExpenses(JSON.parse(stored));
+    } else {
+      setExpenses(expensesData);
+      localStorage.setItem("expenses", JSON.stringify(expensesData));
+    }
+  }, []);
+
+  // ✅ Save to localStorage whenever expenses change
+  useEffect(() => {
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+  }, [expenses]);
+
+  // ✅ Remove handler
+  const handleRemove = (id: number) => {
+    setExpenses((prev) => prev.filter((exp) => exp.id !== id));
+  };
+
   // Filter + Search + Sort
   const filteredExpenses = useMemo(() => {
-    let data = [...expensesData];
+    let data = [...expenses];
 
     if (category !== "All") {
       data = data.filter((exp) => exp.category === category);
@@ -33,13 +58,15 @@ export default function ExpensesPage() {
     }
 
     if (sortBy === "date") {
-      data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      data.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
     } else if (sortBy === "amount") {
       data.sort((a, b) => b.amount - a.amount);
     }
 
     return data;
-  }, [category, sortBy, search]);
+  }, [expenses, category, sortBy, search]);
 
   // Summary
   const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -48,10 +75,12 @@ export default function ExpensesPage() {
     0
   );
 
-  // Prepare chart data (category-wise)
+  // Chart Data
   const chartData = useMemo(() => {
     const data: { name: string; value: number }[] = [];
-    const categories = Array.from(new Set(filteredExpenses.map((e) => e.category)));
+    const categories = Array.from(
+      new Set(filteredExpenses.map((e) => e.category))
+    );
     categories.forEach((cat) => {
       const sum = filteredExpenses
         .filter((e) => e.category === cat)
@@ -63,11 +92,13 @@ export default function ExpensesPage() {
 
   return (
     <div className="font-sans min-h-screen p-8 space-y-8 bg-gray-50">
+      {/* Page Title */}
       <div className="text-center mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
           Expenses Tracker
         </h1>
       </div>
+
       {/* Summary Section */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-15">
         <div className="bg-blue-100 p-6 rounded-2xl shadow text-center">
@@ -128,22 +159,38 @@ export default function ExpensesPage() {
               {/* Top accent */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-l to-red-950 rounded-t-2xl"></div>
 
+              {/*  Remove button (lucide-react X) */}
+              <button
+                onClick={() => handleRemove(exp.id)}
+                className="absolute top-3 right-3 text-gray-400 hover:text-red-600"
+              >
+                <Image
+                  src={cancel}
+                  alt="Remove"
+                  width={20}
+                  height={20}
+                  className="cursor-pointer"
+                />
+              </button>
+
               <h3 className="text-xl font-semibold text-gray-900 mt-2">{exp.title}</h3>
               <p className="text-sm font-medium text-gray-500 uppercase">{exp.category}</p>
               <p className="text-2xl font-bold mt-4 text-gray-800">Rs.{exp.amount}</p>
-              <p className="text-sm text-gray-400 mt-2">{new Date(exp.date).toDateString()}</p>
+              <p className="text-sm text-gray-400 mt-2">
+                {new Date(exp.date).toDateString()}
+              </p>
             </div>
           ))
         ) : (
-          <p className="text-center text-gray-500 col-span-full">
-            No expenses found.
-          </p>
+          <p className="text-center text-gray-500 col-span-full">No expenses found.</p>
         )}
       </div>
 
       {/* Category Breakdown Chart */}
       <div className="bg-white p-6 rounded-2xl shadow">
-        <h3 className="text-lg font-semibold mb-4 text-center">Category Breakdown</h3>
+        <h3 className="text-lg font-semibold mb-4 text-center">
+          Category Breakdown
+        </h3>
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -156,8 +203,10 @@ export default function ExpensesPage() {
                 label
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-Rs-${index}`} fill={COLORS[index % COLORS.length]} />
-
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
