@@ -279,7 +279,7 @@ export default function ExpensesPage() {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="border p-2 rounded-lg"
+          className="border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium text-gray-700 bg-white shadow-sm min-w-[160px]"
         >
           <option value="All">All Categories</option>
           {categories.map((cat, index) => (
@@ -292,19 +292,24 @@ export default function ExpensesPage() {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="border p-2 rounded-lg"
+          className="border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium text-gray-700 bg-white shadow-sm min-w-[140px]"
         >
           <option value="date">Sort by Date</option>
           <option value="amount">Sort by Amount</option>
         </select>
 
-        <input
-          type="text"
-          placeholder="Search by title..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border p-2 rounded-lg flex-1"
-        />
+        <div className="relative flex-1 min-w-[200px]">
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 pl-10 rounded-xl transition-all duration-200 outline-none placeholder-gray-400 font-medium text-gray-700 bg-white shadow-sm"
+          />
+          <svg className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
       </div>
 
       {/* Expenses Grid */}
