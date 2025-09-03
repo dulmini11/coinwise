@@ -133,9 +133,9 @@ export default function ExpensesPage() {
         </h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-gradient-to-r from-purple-800 to-blue-900 text-white rounded-lg hover:bg-purple-700 transition"
+          className="px-4 py-2 bg-gradient-to-r from-purple-800 to-blue-900 text-white rounded-3xl hover:bg-purple-900 transition"
         >
-          {showForm ? "Cancel" : "Add Expense"}
+          {showForm ? "Cancel" : "+ Add Expense"}
         </button>
       </div>
 
@@ -146,7 +146,7 @@ export default function ExpensesPage() {
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">Add New Expense</h3>
+                <h3 className="text-xl font-bold">Add New Expense +</h3>
                 <button 
                   onClick={() => setShowForm(false)}
                   className="text-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
@@ -218,7 +218,7 @@ export default function ExpensesPage() {
                   />
                   <button
                     onClick={handleAddCategory}
-                    className="bg-gradient-to-r from-purple-900 to-purple-900 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 text-sm"
+                    className="bg-gradient-to-r from-purple-900 to-purple-900 hover:from-purple-600 hover:to-purple-900 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 text-sm"
                   >
                     Add
                   </button>
