@@ -133,81 +133,126 @@ export default function ExpensesPage() {
         </h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+          className="px-4 py-2 bg-gradient-to-r from-purple-800 to-blue-900 text-white rounded-lg hover:bg-purple-700 transition"
         >
           {showForm ? "Cancel" : "Add Expense"}
         </button>
       </div>
 
-      {/* Add Expense Form */}
+      {/* Add Expense Modal */}
       {showForm && (
-        <div className="bg-white p-6 rounded-2xl shadow mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Title"
-              value={newExpense.title}
-              onChange={(e) =>
-                setNewExpense({ ...newExpense, title: e.target.value })
-              }
-              className="border p-2 rounded-lg"
-            />
-            <input
-              type="number"
-              placeholder="Amount"
-              value={newExpense.amount}
-              onChange={(e) =>
-                setNewExpense({ ...newExpense, amount: e.target.value })
-              }
-              className="border p-2 rounded-lg"
-            />
-            <div>
-              {/* Category Selector */}
-              <select
-                value={newExpense.category}
-                onChange={(e) =>
-                  setNewExpense({ ...newExpense, category: e.target.value })
-                }
-                className="border p-2 rounded-lg w-full"
-              >
-                {categories.map((cat, index) => (
-                  <option key={index} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold">Add New Expense</h3>
+                <button 
+                  onClick={() => setShowForm(false)}
+                  className="text-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-purple-100 text-sm mt-1">Track your spending easily</p>
+            </div>
 
-              {/* Add Category */}
-              <div className="flex items-center gap-2 mt-2">
+            {/* Form Content */}
+            <div className="p-6 space-y-5">
+              {/* Title Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Expense Title</label>
                 <input
                   type="text"
-                  value={newCategory}
-                  onChange={(e) => setNewCategory(e.target.value)}
-                  placeholder="New Category"
-                  className="border p-2 rounded-lg flex-1"
+                  placeholder="e.g., Coffee, Groceries, Gas"
+                  value={newExpense.title}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, title: e.target.value })
+                  }
+                  className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none placeholder-gray-400"
                 />
-                <button
-                  onClick={handleAddCategory}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
+              </div>
+
+              {/* Amount Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rs</span>
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={newExpense.amount}
+                    onChange={(e) =>
+                      setNewExpense({ ...newExpense, amount: e.target.value })
+                    }
+                    className="w-full pl-8 pr-3 py-3 border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 rounded-xl transition-colors outline-none placeholder-gray-400"
+                  />
+                </div>
+              </div>
+
+              {/* Category Section */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Category</label>
+                <select
+                  value={newExpense.category}
+                  onChange={(e) =>
+                    setNewExpense({ ...newExpense, category: e.target.value })
+                  }
+                  className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white"
                 >
-                  Add
-                </button>
+                  {categories.map((cat, index) => (
+                    <option key={index} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Add New Category */}
+                <div className="flex items-center gap-2 mt-3">
+                  <input
+                    type="text"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder="Create new category"
+                    className="flex-1 border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-2.5 rounded-lg transition-colors outline-none placeholder-gray-400 text-sm"
+                  />
+                  <button
+                    onClick={handleAddCategory}
+                    className="bg-gradient-to-r from-purple-900 to-purple-900 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 text-sm"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Date Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Date</label>
+                <input
+                  type="date"
+                  value={newExpense.date}
+                  onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                  className="w-full border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none"
+                />
               </div>
             </div>
 
-            <input
-              type="date"
-              value={newExpense.date}
-              onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-              className="border p-2 rounded-lg"
-            />
+            {/* Footer Actions */}
+            <div className="p-4 pt-0 flex gap-2">
+              <button
+                onClick={() => setShowForm(false)}
+                className="flex-1 px-3 py-2 border-2 border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddExpense}
+                className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-md text-sm"
+              >
+                Add Expense
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleAddExpense}
-            className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
-          >
-            Add Expense
-          </button>
         </div>
       )}
 
