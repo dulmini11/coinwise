@@ -10,12 +10,14 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { Home, Book, BarChart3 } from "lucide-react";
 import Image from "next/image";
 import cancel from "../../public/cancel.png"; 
 
 
 export default function ExpensesPage() {
   // States
+  const [activeTab, setActiveTab] = useState("all_expenses"); // Navigation state
   const [categories, setCategories] = useState<string[]>([
     "Food",
     "Travel",
@@ -27,7 +29,7 @@ export default function ExpensesPage() {
   const [sortBy, setSortBy] = useState("date");
   const [search, setSearch] = useState("");
   const [expenses, setExpenses] = useState<any[]>([]);
-    const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   // Form state
   const [newExpense, setNewExpense] = useState({
@@ -124,22 +126,64 @@ export default function ExpensesPage() {
     return data;
   }, [filteredExpenses]);
 
-  return (
-    <div className="font-sans min-h-screen p-8 space-y-8 bg-gray-50">
-      {/* Page Title */}
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Expenses Tracker
-        </h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-gradient-to-r from-purple-800 to-blue-900 text-white rounded-3xl hover:bg-purple-900 transition"
-        >
-          {showForm ? "Cancel" : "+ Add Expense"}
-        </button>
-      </div>
+  // Sidebar navigation items
+  const sidebarItems = [
+    { id: "home", label: "Home", icon: <Home size={20} /> },
+    { id: "all_expenses", label: "All Expenses", icon: <Book size={20} /> },
+    { id: "graph", label: "Graph", icon: <BarChart3 size={20} /> },
+  ];
 
-      {/* Add Expense Modal */}
+  // Render content based on active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case "home":
+        return (
+          <div className="flex items-center justify-center h-96">
+          </div>
+        );
+      
+      case "graph":
+        return (
+          <div className="bg-white p-6 rounded-2xl shadow">
+            {/* Category Breakdown Chart */}
+            <div className="bg-white p-6 rounded-2xl shadow">
+              <h3 className="text-lg font-semibold mb-4 text-center">
+                Category Breakdown
+              </h3>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={100}
+                      fill="#8884d8"
+                      label
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500">No data to display.</p>
+              )}
+            </div>
+          </div>
+        );
+      
+      case "all_expenses":
+      default:
+        return (
+          <>
+            {/* Add Expense Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95">
@@ -348,38 +392,41 @@ export default function ExpensesPage() {
         ) : (
           <p className="text-center text-gray-500 col-span-full">No expenses found.</p>
         )}
+            </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white shadow-lg">
+        <div className="p-6">
+          <h1 className="text-xl font-bold text-gray-800">Expenses Tracker</h1>
+        </div>
+        
+        <nav className="mt-6">
+          {sidebarItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center px-6 py-6 text-left transition-colors duration-200 ${
+                activeTab === item.id
+                  ? 'bg-purple-100 text-purple-900 border-r-4 border-purple-900'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <span className="mr-3 text-lg">{item.icon}</span>
+              <span className="font-medium">{item.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Category Breakdown Chart */}
-      <div className="bg-white p-6 rounded-2xl shadow">
-        <h3 className="text-lg font-semibold mb-4 text-center">
-          Category Breakdown
-        </h3>
-        {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={100}
-                fill="#8884d8"
-                label
-              >
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-center text-gray-500">No data to display.</p>
-        )}
+      {/* Main Content */}
+      <div className="flex-1 p-8">
+        {renderContent()}
       </div>
     </div>
   );
