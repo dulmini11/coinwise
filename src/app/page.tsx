@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Home, Book, BarChart3 } from "lucide-react";
+import { Home, Book, BarChart3, Menu } from "lucide-react";
 import Image from "next/image";
 import cancel from "../../public/cancel.png"; 
 
@@ -18,6 +18,7 @@ import cancel from "../../public/cancel.png";
 export default function ExpensesPage() {
   // States
   const [activeTab, setActiveTab] = useState("all_expenses"); // Navigation state
+  const [isMinimized, setIsMinimized] = useState(false);
   const [categories, setCategories] = useState<string[]>([
     "Food",
     "Travel",
@@ -401,24 +402,36 @@ export default function ExpensesPage() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-gray-800">Expenses Tracker</h1>
+      <div
+        className={`bg-white shadow-lg transition-all duration-300 ${
+          isMinimized ? "w-20" : "w-64"
+        }`}
+      >
+        <div className="flex items-center justify-between p-6">
+          {!isMinimized && (
+            <h1 className="text-xl font-bold text-gray-800">Expenses Tracker</h1>
+          )}
+          <button
+            onClick={() => setIsMinimized(!isMinimized)}
+            className="rounded hover:bg-gray-100"
+          >
+            <Menu size={24} />
+          </button>
         </div>
-        
-        <nav className="mt-6">
+
+        <nav className="mt-6 flex flex-col gap-1">
           {sidebarItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`w-full flex items-center px-6 py-6 text-left transition-colors duration-200 ${
+              className={`w-full flex items-center p-4 transition-colors duration-200 ${
                 activeTab === item.id
-                  ? 'bg-purple-100 text-purple-900 border-r-4 border-purple-900'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  ? "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
-              <span className="mr-3 text-lg">{item.icon}</span>
-              <span className="font-medium">{item.label}</span>
+              <span className="text-lg">{item.icon}</span>
+              {!isMinimized && <span className="ml-3 font-medium">{item.label}</span>}
             </button>
           ))}
         </nav>
