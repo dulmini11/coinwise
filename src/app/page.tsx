@@ -271,18 +271,30 @@ export default function ExpensesPage() {
       )}
 
       {/* Summary Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-15">
-        <div className="bg-blue-100 p-6 rounded-2xl shadow text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-16">
+        <div
+          className={`p-6 rounded-2xl shadow text-center transition-colors duration-300 ${
+            darkMode ? "bg-blue-700 text-white" : "bg-blue-100 text-black"
+          }`}
+        >
           <h2 className="text-lg font-semibold">Total Expenses</h2>
           <p className="text-2xl font-bold">Rs. {total}</p>
         </div>
 
-        <div className="bg-green-100 p-6 rounded-2xl shadow text-center">
+        <div
+          className={`p-6 rounded-2xl shadow text-center transition-colors duration-300 ${
+            darkMode ? "bg-green-900 text-white" : "bg-green-100 text-black"
+          }`}
+        >
           <h2 className="text-lg font-semibold">Highest Expense</h2>
           <p className="text-2xl font-bold">Rs.{highest}</p>
         </div>
 
-        <div className="bg-purple-100 p-6 rounded-2xl shadow text-center">
+        <div
+          className={`p-6 rounded-2xl shadow text-center transition-colors duration-300 ${
+            darkMode ? "bg-purple-900 text-white" : "bg-purple-100 text-black"
+          }`}
+        >
           <h2 className="text-lg font-semibold">Expense Count</h2>
           <p className="text-2xl font-bold">{filteredExpenses.length}</p>
         </div>
