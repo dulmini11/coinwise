@@ -146,37 +146,7 @@ export default function ExpensesPage() {
       
       case "graph":
         return (
-          <div className={`p-6 rounded-2xl shadow ${
-              darkMode ? "bg-gray-900 text-white" : "bg-white" }`}>
-            <h3 className="text-lg font-semibold mb-4 text-center">
-                Category Breakdown
-              </h3>
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      dataKey="value"
-                      nameKey="name"
-                      outerRadius={100}
-                      fill="#8884d8"
-                      label
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-center text-gray-500">No data to display.</p>
-              )}
-          </div>
+          <div></div>
         );
       
       case "all_expenses":
@@ -392,7 +362,39 @@ export default function ExpensesPage() {
         ) : (
           <p className="text-center text-gray-500 col-span-full">No expenses found.</p>
         )}
-            </div>
+
+          </div>
+            <div className={`p-6 mt-12 rounded-2xl shadow border-1 ${
+              darkMode ? "bg-black text-white" : "bg-white" }`}>
+            <h3 className="text-2xl font-semibold mb-4 text-center">
+                Category Breakdown
+              </h3>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={100}
+                      fill="#8884d8"
+                      label
+                    >
+                      {chartData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500">No data to display.</p>
+              )}
+          </div>
           </>
         );
     }
