@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { Home, Book, BarChart3, Menu } from "lucide-react";
+import { Home, Book, BarChart3, Menu, Moon, Sun } from "lucide-react";
 import Image from "next/image";
 import cancel from "../../public/cancel.png"; 
 
@@ -30,6 +30,7 @@ export default function ExpensesPage() {
   const [sortBy, setSortBy] = useState("date");
   const [search, setSearch] = useState("");
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [darkMode, setDarkMode] = useState(false);
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   // Form state
@@ -145,10 +146,9 @@ export default function ExpensesPage() {
       
       case "graph":
         return (
-          <div className="bg-white p-6 rounded-2xl shadow">
-            {/* Category Breakdown Chart */}
-            <div className="bg-white p-6 rounded-2xl shadow">
-              <h3 className="text-lg font-semibold mb-4 text-center">
+          <div className={`p-6 rounded-2xl shadow ${
+              darkMode ? "bg-gray-900 text-white" : "bg-white" }`}>
+            <h3 className="text-lg font-semibold mb-4 text-center">
                 Category Breakdown
               </h3>
               {chartData.length > 0 ? (
@@ -176,7 +176,6 @@ export default function ExpensesPage() {
               ) : (
                 <p className="text-center text-gray-500">No data to display.</p>
               )}
-            </div>
           </div>
         );
       
@@ -400,23 +399,35 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className={`flex min-h-screen transition-colors duration-300 ${
+        darkMode ? "bg-black text-white" : "bg-gray-50 text-black"
+      }`}
+    >
       {/* Sidebar */}
       <div
-        className={`bg-white shadow-lg transition-all duration-300 ${
-          isMinimized ? "w-20" : "w-64"
-        }`}
+        className={`shadow-lg transition-all duration-300 ${
+          darkMode ? "bg-black text-white" : "bg-white text-black"
+        } ${isMinimized ? "w-20" : "w-64"}`}
       >
         <div className="flex items-center justify-between p-6">
           {!isMinimized && (
-            <h1 className="text-xl font-bold text-gray-800">Expenses Tracker</h1>
+            <h1 className="text-xl font-bold">Expenses Tracker</h1>
           )}
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="rounded hover:bg-gray-100"
-          >
-            <Menu size={24} />
-          </button>
+          <div className="flex gap-2">
+            {/* Dark Mode Toggle Button 🌙☀️ */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-300/30 transition"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="rounded hover:bg-gray-300/30  dark:hover:bg-gray-700"
+            >
+              <Menu size={24} />
+            </button>
+          </div>
         </div>
 
         <nav className="mt-6 flex flex-col gap-1">
@@ -426,8 +437,12 @@ export default function ExpensesPage() {
               onClick={() => setActiveTab(item.id)}
               className={`w-full flex items-center p-4 transition-colors duration-200 ${
                 activeTab === item.id
-                  ? "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? darkMode
+                    ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
+                    : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
+                  : darkMode
+                  ? "text-gray-300 hover:bg-gray-700/40"
+                  : "text-gray-700/40 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
               <span className="text-lg">{item.icon}</span>
