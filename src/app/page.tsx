@@ -38,6 +38,7 @@ export default function ExpensesPage() {
   const [search, setSearch] = useState("");
   const [expenses, setExpenses] = useState<any[]>([]);
   const [darkMode, setDarkMode] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>(""); // New state for month selection
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
   // Form state
@@ -135,28 +136,56 @@ export default function ExpensesPage() {
     return data;
   }, [filteredExpenses]);
 
-  // Monthly expenses data for graph
-  const monthlyData = useMemo(() => {
-    const monthlyExpenses: { [key: string]: number } = {};
-    
+  // Get available months for dropdown
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
     expenses.forEach((exp) => {
       const date = new Date(exp.date);
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-      
-      if (!monthlyExpenses[monthName]) {
-        monthlyExpenses[monthName] = 0;
-      }
-      monthlyExpenses[monthName] += exp.amount;
+      months.add(monthKey);
     });
+    return Array.from(months).sort().reverse(); // Most recent first
+  }, [expenses]);
 
-    return Object.entries(monthlyExpenses)
-      .map(([month, amount]) => ({
-        month,
+  // Set default selected month
+  useEffect(() => {
+    if (availableMonths.length > 0 && !selectedMonth) {
+      setSelectedMonth(availableMonths[0]);
+    }
+  }, [availableMonths, selectedMonth]);
+
+  // Daily expenses data for selected month
+  const dailyData = useMemo(() => {
+    if (!selectedMonth) return [];
+
+    const [year, month] = selectedMonth.split('-');
+    const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+    const dailyExpenses: { [key: string]: number } = {};
+
+    // Initialize all days with 0
+    for (let day = 1; day <= daysInMonth; day++) {
+      dailyExpenses[day.toString()] = 0;
+    }
+
+    // Calculate daily totals for selected month
+    expenses
+      .filter((exp) => {
+        const expDate = new Date(exp.date);
+        const expMonthKey = `${expDate.getFullYear()}-${String(expDate.getMonth() + 1).padStart(2, '0')}`;
+        return expMonthKey === selectedMonth;
+      })
+      .forEach((exp) => {
+        const day = new Date(exp.date).getDate().toString();
+        dailyExpenses[day] += exp.amount;
+      });
+
+    return Object.entries(dailyExpenses)
+      .map(([day, amount]) => ({
+        day: parseInt(day),
         amount: Math.round(amount)
       }))
-      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
-  }, [expenses]);
+      .sort((a, b) => a.day - b.day);
+  }, [expenses, selectedMonth]);
 
   // Sidebar navigation items
   const sidebarItems = [
@@ -178,29 +207,58 @@ export default function ExpensesPage() {
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2">Monthly Expenses Overview</h2>
-              <p className="text-gray-600">Track your spending patterns over time</p>
+              <h2 className="text-3xl font-bold mb-2">Daily Expenses Overview</h2>
+              <p className="text-gray-600">Track your daily spending patterns</p>
             </div>
 
-            {/* Monthly Line Chart */}
+            {/* Month Selector */}
+            <div className="flex justify-center mb-6">
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className={`border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none font-medium min-w-[200px] ${
+                  darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+                }`}
+              >
+                {availableMonths.map((month) => {
+                  const [year, monthNum] = month.split('-');
+                  const monthName = new Date(parseInt(year), parseInt(monthNum) - 1).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long' 
+                  });
+                  return (
+                    <option key={month} value={month}>
+                      {monthName}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Daily Line Chart */}
             <div className={`p-6 rounded-2xl shadow border-1 ${
               darkMode ? "bg-black text-white" : "bg-white" 
             }`}>
               <h3 className="text-2xl font-semibold mb-4 text-center">
-                Monthly Expenses Trend
+                Daily Expenses for {selectedMonth ? (() => {
+                  const [year, month] = selectedMonth.split('-');
+                  return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                })() : 'Selected Month'}
               </h3>
-              {monthlyData.length > 0 ? (
+              {dailyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <LineChart data={dailyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
                     <XAxis 
-                      dataKey="month" 
+                      dataKey="day" 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
                       fontSize={12}
+                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10 }}
                     />
                     <YAxis 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
                       fontSize={12}
+                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft' }}
                     />
                     <Tooltip 
                       contentStyle={{
@@ -210,41 +268,44 @@ export default function ExpensesPage() {
                         color: darkMode ? "#ffffff" : "#000000"
                       }}
                       formatter={(value) => [`Rs. ${value}`, "Amount"]}
+                      labelFormatter={(label) => `Day ${label}`}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="amount" 
                       stroke="#8b5cf6" 
                       strokeWidth={3}
-                      dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 6 }}
-                      activeDot={{ r: 8, stroke: "#8b5cf6", strokeWidth: 2 }}
+                      dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: "#8b5cf6", strokeWidth: 2 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-center text-gray-500 py-20">No monthly data to display.</p>
+                <p className="text-center text-gray-500 py-20">No data available for this month.</p>
               )}
             </div>
 
-            {/* Monthly Bar Chart Alternative */}
+            {/* Daily Bar Chart Alternative */}
             <div className={`p-6 rounded-2xl shadow border-1 ${
               darkMode ? "bg-black text-white" : "bg-white" 
             }`}>
               <h3 className="text-2xl font-semibold mb-4 text-center">
-                Monthly Expenses Bar Chart
+                Daily Expenses Bar Chart
               </h3>
-              {monthlyData.length > 0 ? (
+              {dailyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                  <BarChart data={dailyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
                     <XAxis 
-                      dataKey="month" 
+                      dataKey="day" 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
                       fontSize={12}
+                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10 }}
                     />
                     <YAxis 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
                       fontSize={12}
+                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft' }}
                     />
                     <Tooltip 
                       contentStyle={{
@@ -254,6 +315,7 @@ export default function ExpensesPage() {
                         color: darkMode ? "#ffffff" : "#000000"
                       }}
                       formatter={(value) => [`Rs. ${value}`, "Amount"]}
+                      labelFormatter={(label) => `Day ${label}`}
                     />
                     <Bar 
                       dataKey="amount" 
@@ -263,35 +325,35 @@ export default function ExpensesPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-center text-gray-500 py-20">No monthly data to display.</p>
+                <p className="text-center text-gray-500 py-20">No data available for this month.</p>
               )}
             </div>
 
-            {/* Monthly Statistics */}
+            {/* Daily Statistics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className={`p-6 rounded-2xl shadow text-center ${
                 darkMode ? "bg-black text-white border border-blue-300" : "bg-blue-100"
               }`}>
-                <h4 className="text-lg font-semibold mb-2">Avg Monthly</h4>
+                <h4 className="text-lg font-semibold mb-2">Avg Daily</h4>
                 <p className="text-2xl font-bold">
-                  Rs. {monthlyData.length > 0 ? Math.round(monthlyData.reduce((sum, item) => sum + item.amount, 0) / monthlyData.length) : 0}
+                  Rs. {dailyData.length > 0 ? Math.round(dailyData.reduce((sum, item) => sum + item.amount, 0) / dailyData.filter(item => item.amount > 0).length || 0) : 0}
                 </p>
               </div>
               
               <div className={`p-6 rounded-2xl shadow text-center ${
                 darkMode ? "bg-black text-white border border-green-300" : "bg-green-100"
               }`}>
-                <h4 className="text-lg font-semibold mb-2">Highest Month</h4>
+                <h4 className="text-lg font-semibold mb-2">Highest Day</h4>
                 <p className="text-2xl font-bold">
-                  Rs. {monthlyData.length > 0 ? Math.max(...monthlyData.map(item => item.amount)) : 0}
+                  Rs. {dailyData.length > 0 ? Math.max(...dailyData.map(item => item.amount)) : 0}
                 </p>
               </div>
               
               <div className={`p-6 rounded-2xl shadow text-center ${
                 darkMode ? "bg-black text-white border border-purple-300" : "bg-purple-100"
               }`}>
-                <h4 className="text-lg font-semibold mb-2">Total Months</h4>
-                <p className="text-2xl font-bold">{monthlyData.length}</p>
+                <h4 className="text-lg font-semibold mb-2">Days with Expenses</h4>
+                <p className="text-2xl font-bold">{dailyData.filter(item => item.amount > 0).length}</p>
               </div>
             </div>
           </div>
