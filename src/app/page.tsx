@@ -9,6 +9,13 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar
 } from "recharts";
 import { Home, Book, BarChart3, Menu, Moon, Sun } from "lucide-react";
 import Image from "next/image";
@@ -128,6 +135,29 @@ export default function ExpensesPage() {
     return data;
   }, [filteredExpenses]);
 
+  // Monthly expenses data for graph
+  const monthlyData = useMemo(() => {
+    const monthlyExpenses: { [key: string]: number } = {};
+    
+    expenses.forEach((exp) => {
+      const date = new Date(exp.date);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      
+      if (!monthlyExpenses[monthName]) {
+        monthlyExpenses[monthName] = 0;
+      }
+      monthlyExpenses[monthName] += exp.amount;
+    });
+
+    return Object.entries(monthlyExpenses)
+      .map(([month, amount]) => ({
+        month,
+        amount: Math.round(amount)
+      }))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+  }, [expenses]);
+
   // Sidebar navigation items
   const sidebarItems = [
     { id: "home", label: "Home", icon: <Home size={20} /> },
@@ -146,7 +176,125 @@ export default function ExpensesPage() {
       
       case "graph":
         return (
-          <div></div>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-bold mb-2">Monthly Expenses Overview</h2>
+              <p className="text-gray-600">Track your spending patterns over time</p>
+            </div>
+
+            {/* Monthly Line Chart */}
+            <div className={`p-6 rounded-2xl shadow border-1 ${
+              darkMode ? "bg-black text-white" : "bg-white" 
+            }`}>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Monthly Expenses Trend
+              </h3>
+              {monthlyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      fontSize={12}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                        border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
+                        borderRadius: "8px",
+                        color: darkMode ? "#ffffff" : "#000000"
+                      }}
+                      formatter={(value) => [`Rs. ${value}`, "Amount"]}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="amount" 
+                      stroke="#8b5cf6" 
+                      strokeWidth={3}
+                      dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, stroke: "#8b5cf6", strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500 py-20">No monthly data to display.</p>
+              )}
+            </div>
+
+            {/* Monthly Bar Chart Alternative */}
+            <div className={`p-6 rounded-2xl shadow border-1 ${
+              darkMode ? "bg-black text-white" : "bg-white" 
+            }`}>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Monthly Expenses Bar Chart
+              </h3>
+              {monthlyData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
+                    <XAxis 
+                      dataKey="month" 
+                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
+                      fontSize={12}
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                        border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
+                        borderRadius: "8px",
+                        color: darkMode ? "#ffffff" : "#000000"
+                      }}
+                      formatter={(value) => [`Rs. ${value}`, "Amount"]}
+                    />
+                    <Bar 
+                      dataKey="amount" 
+                      fill="#10b981"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <p className="text-center text-gray-500 py-20">No monthly data to display.</p>
+              )}
+            </div>
+
+            {/* Monthly Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className={`p-6 rounded-2xl shadow text-center ${
+                darkMode ? "bg-black text-white border border-blue-300" : "bg-blue-100"
+              }`}>
+                <h4 className="text-lg font-semibold mb-2">Avg Monthly</h4>
+                <p className="text-2xl font-bold">
+                  Rs. {monthlyData.length > 0 ? Math.round(monthlyData.reduce((sum, item) => sum + item.amount, 0) / monthlyData.length) : 0}
+                </p>
+              </div>
+              
+              <div className={`p-6 rounded-2xl shadow text-center ${
+                darkMode ? "bg-black text-white border border-green-300" : "bg-green-100"
+              }`}>
+                <h4 className="text-lg font-semibold mb-2">Highest Month</h4>
+                <p className="text-2xl font-bold">
+                  Rs. {monthlyData.length > 0 ? Math.max(...monthlyData.map(item => item.amount)) : 0}
+                </p>
+              </div>
+              
+              <div className={`p-6 rounded-2xl shadow text-center ${
+                darkMode ? "bg-black text-white border border-purple-300" : "bg-purple-100"
+              }`}>
+                <h4 className="text-lg font-semibold mb-2">Total Months</h4>
+                <p className="text-2xl font-bold">{monthlyData.length}</p>
+              </div>
+            </div>
+          </div>
         );
       
       case "all_expenses":
