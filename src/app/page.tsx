@@ -413,75 +413,77 @@ export default function ExpensesPage() {
   };
 
   return (
-    <div className={`flex min-h-screen transition-colors duration-300 ${
-        darkMode ? "bg-black text-white" : "bg-gray-50 text-black"
-      }`}
+  <div
+    className={`flex h-screen transition-colors duration-300 ${
+      darkMode ? "bg-black text-white" : "bg-gray-50 text-black"
+    }`}
+  >
+    {/* Sidebar */}
+    <div
+      className={`shadow-lg flex flex-col transition-all duration-300 ${
+        darkMode ? "bg-black text-white" : "bg-white text-black"
+      } ${isMinimized ? "w-20" : "w-64"}`}
     >
-      {/* Sidebar */}
-<div
-  className={`shadow-lg flex flex-col transition-all duration-300 ${
-    darkMode ? "bg-black text-white" : "bg-white text-black"
-  } ${isMinimized ? "w-20" : "w-64"}`}
->
-  <div className="flex items-center justify-between p-6">
-    {!isMinimized && (
-      <h1 className="text-xl font-bold">Expenses Tracker</h1>
-    )}
-    <div className="flex gap-2">
-      {/* Dark Mode Toggle */}
-      <button
-        onClick={() => setDarkMode(!darkMode)}
-        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-300/30 transition"
-      >
-        {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-      </button>
-      <button
-        onClick={() => setIsMinimized(!isMinimized)}
-        className="rounded hover:bg-gray-300/30 dark:hover:bg-gray-700"
-      >
-        <Menu size={24} />
-      </button>
-    </div>
-  </div>
+      <div className="flex items-center justify-between p-6">
+        {!isMinimized && (
+          <h1 className="text-xl font-bold">Expenses Tracker</h1>
+        )}
+        <div className="flex gap-2">
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-300/30 transition"
+          >
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <button
+            onClick={() => setIsMinimized(!isMinimized)}
+            className="rounded hover:bg-gray-300/30 dark:hover:bg-gray-700"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
+      </div>
 
-  {/* Sidebar Nav Items */}
-  <nav className="mt-6 flex flex-col gap-1 flex-1">
-    {sidebarItems.map((item) => (
-      <button
-        key={item.id}
-        onClick={() => setActiveTab(item.id)}
-        className={`w-full flex items-center p-4 transition-colors duration-200 ${
-          activeTab === item.id
-            ? darkMode
-              ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
-              : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
-            : darkMode
-            ? "text-gray-300 hover:bg-gray-700/40"
-            : "text-gray-700/40 hover:bg-gray-100 hover:text-gray-900"
-        }`}
-      >
-        <span className="text-lg">{item.icon}</span>
-        {!isMinimized && <span className="ml-3 font-medium">{item.label}</span>}
-      </button>
-    ))}
-  </nav>
+      {/* Sidebar Nav Items */}
+      <nav className="mt-6 flex flex-col gap-1 flex-1">
+        {sidebarItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            className={`w-full flex items-center p-4 transition-colors duration-200 ${
+              activeTab === item.id
+                ? darkMode
+                  ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
+                  : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
+                : darkMode
+                ? "text-gray-300 hover:bg-gray-700/40"
+                : "text-gray-700/40 hover:bg-gray-100 hover:text-gray-900"
+            }`}
+          >
+            <span className="text-lg">{item.icon}</span>
+            {!isMinimized && (
+              <span className="ml-3 font-medium">{item.label}</span>
+            )}
+          </button>
+        ))}
+      </nav>
 
-  {/* Add Expense Button at Sidebar Bottom */}
-  <div className="mt-auto p-4">
-    <button
-      onClick={() => setShowForm(true)}
-      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
-    >
-      + Add Expense
-    </button>
-  </div>
-</div>
-
-
-      {/* Main Content */}
-      <div className="flex-1 p-8">
-        {renderContent()}
+      {/* Add Expense Button at Sidebar Bottom */}
+      <div className="mt-auto p-4">
+        <button
+          onClick={() => setShowForm(true)}
+          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+        >
+          + Add Expense
+        </button>
       </div>
     </div>
+
+    {/* Main Content */}
+    <div className="flex-1 p-8 overflow-y-auto">
+      {renderContent()}
+    </div>
+  </div>
   );
 }
