@@ -17,10 +17,9 @@ import {
   BarChart,
   Bar
 } from "recharts";
-import { Home, Book, BarChart3, Menu, Moon, Sun } from "lucide-react";
+import { Home, Book, BarChart3, Menu, Moon, Sun, Calculator } from "lucide-react";
 import Image from "next/image";
 import cancel from "../../public/cancel.png"; 
-
 
 export default function ExpensesPage() {
   // States
@@ -49,6 +48,94 @@ export default function ExpensesPage() {
     date: "",
   });
   const [showForm, setShowForm] = useState(false);
+
+  // Calculator states
+  const [display, setDisplay] = useState<string>("0");
+  const [overwrite, setOverwrite] = useState<boolean>(true);
+
+  const buttons: Array<string> = [
+    "C","DEL","%","/","7","8","9","*","4","5","6","-","1","2","3","+","+/-","0",".","=",];
+
+  // Calculator keyboard support
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      const key = e.key;
+      if ((key >= "0" && key <= "9") || key === ".") handleInput(key);
+      if (key === "+" || key === "-" || key === "*" || key === "/") handleInput(key);
+      if (key === "Enter" || key === "=") handleInput("=");
+      if (key === "Backspace") handleInput("DEL");
+      if (key === "Escape") handleInput("C");
+    }
+    
+    if (activeTab === "calculator") {
+      window.addEventListener("keydown", handleKey);
+      return () => window.removeEventListener("keydown", handleKey);
+    }
+  }, [display, overwrite, activeTab]);
+
+  // Calculator input handler
+  function handleInput(value: string) {
+    if (value === "C") {
+      setDisplay("0");
+      setOverwrite(true);
+      return;
+    }
+
+    if (value === "DEL") {
+      setDisplay((d) => {
+        if (overwrite || d.length === 1) {
+          setOverwrite(true);
+          return "0";
+        }
+        return d.slice(0, -1);
+      });
+      return;
+    }
+
+    if (value === "+/-") {
+      setDisplay((d) => {
+        if (d.startsWith("-")) {
+          return d.slice(1);
+        } else {
+          return "-" + d;
+        }
+      });
+      return;
+    }
+
+    if (value === "=") {
+      try {
+        const result = eval(display);
+        setDisplay(result.toString());
+        setOverwrite(true);
+      } catch {
+        setDisplay("Error");
+        setOverwrite(true);
+      }
+      return;
+    }
+
+    if (["+", "-", "*", "/", "%"].includes(value)) {
+      setDisplay((d) => d + value);
+      setOverwrite(false);
+      return;
+    }
+
+    if (value === ".") {
+      if (display.includes(".")) return;
+      setDisplay((d) => (overwrite ? "0." : d + "."));
+      setOverwrite(false);
+      return;
+    }
+
+    // Numbers
+    if (overwrite) {
+      setDisplay(value);
+      setOverwrite(false);
+    } else {
+      setDisplay((d) => d + value);
+    }
+  }
 
   // Add new category
   const handleAddCategory = () => {
@@ -192,6 +279,7 @@ export default function ExpensesPage() {
     { id: "home", label: "Home", icon: <Home size={20} /> },
     { id: "all_expenses", label: "All Expenses", icon: <Book size={20} /> },
     { id: "graph", label: "Graph", icon: <BarChart3 size={20} /> },
+    { id: "calculator", label: "Calculator", icon: <Calculator size={20} /> },
   ];
 
   // Render content based on active tab
@@ -358,7 +446,60 @@ export default function ExpensesPage() {
             </div>
           </div>
         );
-      
+        
+      case "calculator":
+        return (
+          <div className="w-full max-w-lg mx-auto p-1">
+            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+              
+              {/* Title */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                  <span className="text-indigo-400">🧮</span> Smart Calculator
+                </h2>
+                <span className="text-xs text-gray-400">v1.0</span>
+              </div>
+
+              {/* Display */}
+              <div className="bg-black/70 backdrop-blur-lg text-right text-white text-4xl font-mono rounded-xl p-5 min-h-[72px] flex items-center justify-end shadow-inner border border-white/10">
+                <span className="break-words tracking-wide">{display || "0"}</span>
+              </div>
+
+              {/* Buttons */}
+              <div className="grid grid-cols-4 gap-3 mt-6">
+                {buttons.map((b) => {
+                  const isOperator = ["+", "-", "*", "/"].includes(b);
+                  const isEqual = b === "=";
+                  const isClear = b === "C";
+                  return (
+                    <button
+                      key={b}
+                      onClick={() => handleInput(b)}
+                      className={`py-4 rounded-xl text-xl font-semibold transition-all transform hover:scale-105 shadow-md
+                        ${
+                          isEqual
+                            ? "col-span-2 bg-indigo-500 text-white hover:bg-indigo-600"
+                            : isClear
+                            ? "bg-red-500 text-white hover:bg-red-600"
+                            : isOperator
+                            ? "bg-gray-700 text-indigo-300 hover:bg-gray-600"
+                            : "bg-gray-800 text-gray-100 hover:bg-gray-700"
+                        }`}
+                    >
+                      {b}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Tip */}
+              <div className="mt-5 text-[11px] text-gray-500 text-center">
+                💡 Use keyboard: numbers, + - * /, Enter (=), Backspace (DEL), Esc (AC)
+              </div>
+            </div>
+          </div>
+        );
+
       case "all_expenses":
       default:
         return (
