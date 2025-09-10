@@ -504,10 +504,10 @@ export default function ExpensesPage() {
       default:
         return (
           <>
-            {/* Add Expense Modal */}
-      {showForm && (
+      {/* Add Expense Modal */}
+        {showForm && (
         <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95">
+          <div className="bg-white dark:bg-black rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95">
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
               <div className="flex items-center justify-between">
@@ -563,7 +563,7 @@ export default function ExpensesPage() {
                   onChange={(e) =>
                     setNewExpense({ ...newExpense, category: e.target.value })
                   }
-                  className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white"
+                  className="dark:bg-black  w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white"
                 >
                   {categories.map((cat, index) => (
                     <option key={index} value={cat}>
