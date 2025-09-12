@@ -40,6 +40,16 @@ export default function ExpensesPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>(""); // New state for month selection
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
+  const categoryIcons: Record<string, string> = {
+    Shopping: "/icons/shopping.png",
+    Food: "/icons/food.png",
+    Travel: "/icons/transport.png",
+    Education: "/icons/books.png",
+    Housing: "/icons/house",
+    Health:"/icons/health.png",
+    Savings:"/icons/savings"
+  };
+
   // Form state
   const [newExpense, setNewExpense] = useState({
     title: "",
@@ -707,9 +717,15 @@ export default function ExpensesPage() {
           <tbody>
             {filteredExpenses.map((exp: any) => (
               <tr key={exp.id} className="border-b hover:bg-gray-50 transition">
-                {/* <td className="px-6 py-4">
-                  {categoryIcons[exp.category] || <FaBook className="text-gray-400 text-xl" />}
-                </td> */}
+                <td className="px-6 py-4">
+                  <Image
+                    src={categoryIcons[exp.category] || "/default.png"}
+                    alt={exp.category}
+                    width={24}
+                    height={24}
+                    className="rounded"
+                  />
+                </td>
                 <td className="px-6 py-4 font-medium">{exp.title}</td>
                 <td className="px-6 py-4">{exp.category}</td>
                 <td className="px-6 py-4 font-semibold text-gray-800">Rs.{exp.amount}</td>
