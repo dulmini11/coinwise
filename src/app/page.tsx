@@ -690,43 +690,49 @@ export default function ExpensesPage() {
       </div>
 
       {/* Expenses Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredExpenses.length > 0 ? (
-          filteredExpenses.map((exp) => (
-            <div
-              key={exp.id}
-              className="bg-white rounded-2xl shadow-md border border-gray-200 flex flex-col p-5 hover:shadow-xl hover:-translate-y-1 transform transition-all duration-300 relative overflow-hidden"
-            >
-              {/* Top accent */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-l to-red-950 rounded-t-2xl"></div>
-
-              {/*  Remove button */}
-              <button
-                onClick={() => handleRemove(exp.id)}
-                className="absolute top-3 right-3 text-gray-400 hover:text-red-600"
-              >
-                <Image
-                  src={cancel}
-                  alt="Remove"
-                  width={20}
-                  height={20}
-                  className="cursor-pointer"
-                />
-              </button>
-
-              <h3 className="text-xl font-semibold text-gray-900 mt-2">{exp.title}</h3>
-              <p className="text-sm font-medium text-gray-500 uppercase">{exp.category}</p>
-              <p className="text-2xl font-bold mt-4 text-gray-800">Rs.{exp.amount}</p>
-              <p className="text-sm text-gray-400 mt-2">
-                {new Date(exp.date).toDateString()}
-              </p>
-            </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-500 col-span-full">No expenses found.</p>
-        )}
-
-          </div>
+      <div className="overflow-x-auto rounded-2xl shadow-md border border-gray-200 mt-6">
+      {filteredExpenses.length > 0 ? (
+        <table className="w-full text-left border-collapse">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Icon</th>
+              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Title</th>
+              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Category</th>
+              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Amount</th>
+              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Date</th>
+              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Price</th>
+              <th className="px-6 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredExpenses.map((exp: any) => (
+              <tr key={exp.id} className="border-b hover:bg-gray-50 transition">
+                {/* <td className="px-6 py-4">
+                  {categoryIcons[exp.category] || <FaBook className="text-gray-400 text-xl" />}
+                </td> */}
+                <td className="px-6 py-4 font-medium">{exp.title}</td>
+                <td className="px-6 py-4">{exp.category}</td>
+                <td className="px-6 py-4 font-semibold text-gray-800">Rs.{exp.amount}</td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  {new Date(exp.date).toDateString()}
+                </td>
+                <td className="px-6 py-4 text-gray-700">Rs.{exp.price || exp.amount}</td>
+                <td className="px-6 py-4">
+                  <button
+                    onClick={() => handleRemove(exp.id)}
+                    className="text-red-500 hover:text-red-700 font-semibold"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="text-center text-gray-500 py-6">No expenses found.</p>
+      )}
+    </div>
             <div className={`p-6 mt-12 rounded-2xl shadow border-1 ${
               darkMode ? "bg-black text-white" : "bg-white" }`}>
             <h3 className="text-2xl font-semibold mb-4 text-center">
