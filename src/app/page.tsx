@@ -576,7 +576,7 @@ export default function ExpensesPage() {
                   onChange={(e) =>
                     setNewExpense({ ...newExpense, category: e.target.value })
                   }
-                  className="dark:bg-black  w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white"
+                  className=" w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-gray/90"
                 >
                   {categories.map((cat, index) => (
                     <option key={index} value={cat}>
@@ -619,7 +619,7 @@ export default function ExpensesPage() {
             <div className="p-4 pt-0 flex gap-2">
               <button
                 onClick={() => setShowForm(false)}
-                className="flex-1 px-3 py-2 border-2 border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-300 transition-colors text-sm"
+                className="flex-1 px-3 py-2 border-2 border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-green hover:border-red transition-colors text-sm"
               >
                 Cancel
               </button>
