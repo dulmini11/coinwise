@@ -25,6 +25,7 @@ export default function ExpensesPage() {
   // States
   const [activeTab, setActiveTab] = useState("all_expenses"); // Navigation state
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // New mobile state
   const [categories, setCategories] = useState<string[]>([
     "Food",
     "Travel",
@@ -292,6 +293,12 @@ export default function ExpensesPage() {
     { id: "calculator", label: "Calculator", icon: <Calculator size={20} /> },
   ];
 
+  // Mobile sidebar close handler
+  const handleMobileNavClick = (tabId: string) => {
+    setActiveTab(tabId);
+    setIsMobileSidebarOpen(false);
+  };
+
   // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
@@ -304,17 +311,17 @@ export default function ExpensesPage() {
       case "graph":
         return (
           <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-2">Daily Expenses Overview</h2>
+            <div className="text-center px-4">
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">Daily Expenses Overview</h2>
               <p className="text-gray-600">Track your daily spending patterns</p>
             </div>
 
             {/* Month Selector */}
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-6 px-4">
               <select
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className={`border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none font-medium min-w-[200px] ${
+                className={`border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none font-medium w-full max-w-sm ${
                   darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
                 }`}
               >
@@ -334,36 +341,37 @@ export default function ExpensesPage() {
             </div>
 
             {/* Daily Line Chart */}
-            <div className={`p-6 rounded-2xl shadow border-1 ${
+            <div className={`mx-4 p-4 md:p-6 rounded-2xl shadow border-1 ${
               darkMode ? "bg-black text-white" : "bg-white" 
             }`}>
-              <h3 className="text-2xl font-semibold mb-4 text-center">
+              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-center">
                 Daily Expenses for {selectedMonth ? (() => {
                   const [year, month] = selectedMonth.split('-');
                   return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
                 })() : 'Selected Month'}
               </h3>
               {dailyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={dailyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={dailyData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
                     <XAxis 
                       dataKey="day" 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={12}
-                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10 }}
+                      fontSize={10}
+                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10, fontSize: 10 }}
                     />
                     <YAxis 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={12}
-                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft' }}
+                      fontSize={10}
+                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft', fontSize: 10 }}
                     />
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: darkMode ? "#1f2937" : "#ffffff",
                         border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
                         borderRadius: "8px",
-                        color: darkMode ? "#ffffff" : "#000000"
+                        color: darkMode ? "#ffffff" : "#000000",
+                        fontSize: "12px"
                       }}
                       formatter={(value) => [`Rs. ${value}`, "Amount"]}
                       labelFormatter={(label) => `Day ${label}`}
@@ -372,9 +380,9 @@ export default function ExpensesPage() {
                       type="monotone" 
                       dataKey="amount" 
                       stroke="#8b5cf6" 
-                      strokeWidth={3}
-                      dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, stroke: "#8b5cf6", strokeWidth: 2 }}
+                      strokeWidth={2}
+                      dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 3 }}
+                      activeDot={{ r: 5, stroke: "#8b5cf6", strokeWidth: 2 }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -384,33 +392,34 @@ export default function ExpensesPage() {
             </div>
 
             {/* Daily Bar Chart Alternative */}
-            <div className={`p-6 rounded-2xl shadow border-1 ${
+            <div className={`mx-4 p-4 md:p-6 rounded-2xl shadow border-1 ${
               darkMode ? "bg-black text-white" : "bg-white" 
             }`}>
-              <h3 className="text-2xl font-semibold mb-4 text-center">
+              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-center">
                 Daily Expenses Bar Chart
               </h3>
               {dailyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={dailyData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={dailyData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
                     <XAxis 
                       dataKey="day" 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={12}
-                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10 }}
+                      fontSize={10}
+                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10, fontSize: 10 }}
                     />
                     <YAxis 
                       stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={12}
-                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft' }}
+                      fontSize={10}
+                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft', fontSize: 10 }}
                     />
                     <Tooltip 
                       contentStyle={{
                         backgroundColor: darkMode ? "#1f2937" : "#ffffff",
                         border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
                         borderRadius: "8px",
-                        color: darkMode ? "#ffffff" : "#000000"
+                        color: darkMode ? "#ffffff" : "#000000",
+                        fontSize: "12px"
                       }}
                       formatter={(value) => [`Rs. ${value}`, "Amount"]}
                       labelFormatter={(label) => `Day ${label}`}
@@ -428,30 +437,30 @@ export default function ExpensesPage() {
             </div>
 
             {/* Daily Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className={`p-6 rounded-2xl shadow text-center ${
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-4">
+              <div className={`p-4 md:p-6 rounded-2xl shadow text-center ${
                 darkMode ? "bg-black text-white border border-blue-300" : "bg-blue-100"
               }`}>
-                <h4 className="text-lg font-semibold mb-2">Avg Daily</h4>
-                <p className="text-2xl font-bold">
+                <h4 className="text-base md:text-lg font-semibold mb-2">Avg Daily</h4>
+                <p className="text-lg md:text-2xl font-bold">
                   Rs. {dailyData.length > 0 ? Math.round(dailyData.reduce((sum, item) => sum + item.amount, 0) / dailyData.filter(item => item.amount > 0).length || 0) : 0}
                 </p>
               </div>
               
-              <div className={`p-6 rounded-2xl shadow text-center ${
+              <div className={`p-4 md:p-6 rounded-2xl shadow text-center ${
                 darkMode ? "bg-black text-white border border-green-300" : "bg-green-100"
               }`}>
-                <h4 className="text-lg font-semibold mb-2">Highest Day</h4>
-                <p className="text-2xl font-bold">
+                <h4 className="text-base md:text-lg font-semibold mb-2">Highest Day</h4>
+                <p className="text-lg md:text-2xl font-bold">
                   Rs. {dailyData.length > 0 ? Math.max(...dailyData.map(item => item.amount)) : 0}
                 </p>
               </div>
               
-              <div className={`p-6 rounded-2xl shadow text-center ${
+              <div className={`p-4 md:p-6 rounded-2xl shadow text-center ${
                 darkMode ? "bg-black text-white border border-purple-300" : "bg-purple-100"
               }`}>
-                <h4 className="text-lg font-semibold mb-2">Days with Expenses</h4>
-                <p className="text-2xl font-bold">{dailyData.filter(item => item.amount > 0).length}</p>
+                <h4 className="text-base md:text-lg font-semibold mb-2">Days with Expenses</h4>
+                <p className="text-lg md:text-2xl font-bold">{dailyData.filter(item => item.amount > 0).length}</p>
               </div>
             </div>
           </div>
@@ -459,24 +468,24 @@ export default function ExpensesPage() {
         
       case "calculator":
         return (
-          <div className="w-full max-w-lg mx-auto p-1">
-            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-6 relative overflow-hidden">
+          <div className="w-full max-w-sm mx-auto p-4">
+            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-4 md:p-6 relative overflow-hidden">
               
               {/* Title */}
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <h2 className="text-base md:text-lg font-semibold text-white flex items-center gap-2">
                   <span className="text-indigo-400">🧮</span> Smart Calculator
                 </h2>
                 <span className="text-xs text-gray-400">v1.0</span>
               </div>
 
               {/* Display */}
-              <div className="bg-black/70 backdrop-blur-lg text-right text-white text-4xl font-mono rounded-xl p-5 min-h-[72px] flex items-center justify-end shadow-inner border border-white/10">
+              <div className="bg-black/70 backdrop-blur-lg text-right text-white text-2xl md:text-4xl font-mono rounded-xl p-4 md:p-5 min-h-[60px] md:min-h-[72px] flex items-center justify-end shadow-inner border border-white/10">
                 <span className="break-words tracking-wide">{display || "0"}</span>
               </div>
 
               {/* Buttons */}
-              <div className="grid grid-cols-4 gap-3 mt-6">
+              <div className="grid grid-cols-4 gap-2 md:gap-3 mt-4 md:mt-6">
                 {buttons.map((b) => {
                   const isOperator = ["+", "-", "*", "/"].includes(b);
                   const isEqual = b === "=";
@@ -485,7 +494,7 @@ export default function ExpensesPage() {
                     <button
                       key={b}
                       onClick={() => handleInput(b)}
-                      className={`py-4 rounded-xl text-xl font-semibold transition-all transform hover:scale-105 shadow-md
+                      className={`py-3 md:py-4 rounded-xl text-base md:text-xl font-semibold transition-all transform hover:scale-105 shadow-md
                         ${
                           isEqual
                             ? "col-span-2 bg-indigo-500 text-white hover:bg-indigo-600"
@@ -503,7 +512,7 @@ export default function ExpensesPage() {
               </div>
 
               {/* Tip */}
-              <div className="mt-5 text-[11px] text-gray-500 text-center">
+              <div className="mt-4 md:mt-5 text-[10px] md:text-[11px] text-gray-500 text-center">
                 💡 Use keyboard: numbers, + - * /, Enter (=), Backspace (DEL), Esc (AC)
               </div>
             </div>
@@ -516,18 +525,18 @@ export default function ExpensesPage() {
           <>
       {/* Add Expense Modal */}
         {showForm && (
-        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
           <div
-            className={`rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95 
+            className={`rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100 animate-in zoom-in-95 
               ${darkMode ? "bg-black text-white border border-gray-600" : "bg-white text-gray-700"}`}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
+            <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-4 md:p-6 rounded-t-3xl">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">Add New Expense +</h3>
+                <h3 className="text-lg md:text-xl font-bold">Add New Expense +</h3>
                 <button 
                   onClick={() => setShowForm(false)}
-                  className="text-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                  className="text-white hover:bg-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
                 >
                   ✕
                 </button>
@@ -536,7 +545,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Form Content */}
-            <div className="p-6 space-y-5">
+            <div className="p-4 md:p-6 space-y-4 md:space-y-5">
               {/* Title Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Expense Title</label>
@@ -576,7 +585,7 @@ export default function ExpensesPage() {
                   onChange={(e) =>
                     setNewExpense({ ...newExpense, category: e.target.value })
                   }
-                  className=" w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-gray/90"
+                  className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-gray/90"
                 >
                   {categories.map((cat, index) => (
                     <option key={index} value={cat}>
@@ -635,154 +644,226 @@ export default function ExpensesPage() {
       )}
 
       {/* Summary Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-16">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 px-4 mt-7">
       <div
-        className={`p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
+        className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
           darkMode ? "bg-black text-white border-blue-300" : "bg-blue-100 text-black border-transparent"
         }`}
       >
-        <h2 className="text-lg font-semibold">Total Expenses</h2>
-        <p className="text-2xl font-bold">Rs. {total}</p>
+        <h2 className="text-base md:text-lg font-semibold">Total Expenses</h2>
+        <p className="text-xl md:text-2xl font-bold">Rs. {total}</p>
       </div>
 
       <div
-        className={`p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
+        className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
           darkMode ? "bg-black text-white border-green-300" : "bg-green-100 text-black border-transparent"
         }`}
       >
-        <h2 className="text-lg font-semibold">Highest Expense</h2>
-        <p className="text-2xl font-bold">Rs.{highest}</p>
+        <h2 className="text-base md:text-lg font-semibold">Highest Expense</h2>
+        <p className="text-xl md:text-2xl font-bold">Rs.{highest}</p>
       </div>
 
       <div
-        className={`p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
+        className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
           darkMode ? "bg-black text-white border-purple-300" : "bg-purple-100 text-black border-transparent"
         }`}
       >
-        <h2 className="text-lg font-semibold">Expense Count</h2>
-        <p className="text-2xl font-bold">{filteredExpenses.length}</p>
+        <h2 className="text-base md:text-lg font-semibold">Expense Count</h2>
+        <p className="text-xl md:text-2xl font-bold">{filteredExpenses.length}</p>
       </div>
       </div>
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-15">
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium text-gray-700 bg-white shadow-sm min-w-[160px]"
-        >
-          <option value="All">All Categories</option>
-          {categories.map((cat, index) => (
-            <option key={index} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-col gap-4 items-stretch mb-6 px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={`border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium shadow-sm ${
+              darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+            }`}
+          >
+            <option value="All">All Categories</option>
+            {categories.map((cat, index) => (
+              <option key={index} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
 
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium text-gray-700 bg-white shadow-sm min-w-[140px]"
-        >
-          <option value="date">Sort by Date</option>
-          <option value="amount">Sort by Amount</option>
-        </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className={`border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium shadow-sm ${
+              darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+            }`}
+          >
+            <option value="date">Sort by Date</option>
+            <option value="amount">Sort by Amount</option>
+          </select>
 
-        <div className="relative flex-1 min-w-[200px]">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 pl-10 rounded-xl transition-all duration-200 outline-none placeholder-gray-400 font-medium text-gray-700 bg-white shadow-sm"
-          />
-          <svg className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <div className="relative sm:col-span-2 lg:col-span-1">
+            <input
+              type="text"
+              placeholder="Search by title..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={`w-full border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 pl-10 rounded-xl transition-all duration-200 outline-none placeholder-gray-400 font-medium shadow-sm ${
+                darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+              }`}
+            />
+            <svg className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
         </div>
       </div>
 
-      {/* Expenses Grid */}
-      <div className="overflow-x-auto rounded-2xl shadow-md border border-gray-200 mt-6">
-      {filteredExpenses.length > 0 ? (
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Icon</th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Title</th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Category</th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Amount</th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Date</th>
-              <th className="px-6 py-3 text-sm font-semibold text-gray-700">Price</th>
-              <th className="px-6 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredExpenses.map((exp: any) => (
-              <tr key={exp.id} className="border-b hover:bg-gray-50 transition">
-                <td className="px-6 py-4">
-                  <Image
-                    src={categoryIcons[exp.category] || "/default.png"}
-                    alt={exp.category}
-                    width={24}
-                    height={24}
-                    className="rounded"
-                  />
-                </td>
-                <td className="px-6 py-4 font-medium">{exp.title}</td>
-                <td className="px-6 py-4">{exp.category}</td>
-                <td className="px-6 py-4 font-semibold text-gray-800">Rs.{exp.amount}</td>
-                <td className="px-6 py-4 text-sm text-gray-500">
-                  {new Date(exp.date).toDateString()}
-                </td>
-                <td className="px-6 py-4 text-gray-700">Rs.{exp.price || exp.amount}</td>
-                <td className="px-6 py-4">
-                  <button
-                    onClick={() => handleRemove(exp.id)}
-                    className="text-red-500 hover:text-red-700 font-semibold"
-                  >
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <p className="text-center text-gray-500 py-6">No expenses found.</p>
-      )}
-    </div>
-            <div className={`p-6 mt-12 rounded-2xl shadow border-1 ${
-              darkMode ? "bg-black text-white" : "bg-white" }`}>
-            <h3 className="text-2xl font-semibold mb-4 text-center">
-                Category Breakdown
-              </h3>
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={chartData}
-                      dataKey="value"
-                      nameKey="name"
-                      outerRadius={100}
-                      fill="#8884d8"
-                      label
-                    >
-                      {chartData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
+      {/* Expenses Grid - Mobile Responsive Table */}
+      <div className="mx-4 mb-8">
+        {filteredExpenses.length > 0 ? (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden lg:block overflow-x-auto rounded-2xl shadow-md border border-gray-200">
+              <table className="w-full text-left border-collapse">
+                <thead className={`${darkMode ? "bg-gray-800" : "bg-gray-100"}`}>
+                  <tr>
+                    <th className="px-6 py-3 text-sm font-semibold">Icon</th>
+                    <th className="px-6 py-3 text-sm font-semibold">Title</th>
+                    <th className="px-6 py-3 text-sm font-semibold">Category</th>
+                    <th className="px-6 py-3 text-sm font-semibold">Amount</th>
+                    <th className="px-6 py-3 text-sm font-semibold">Date</th>
+                    <th className="px-6 py-3 text-sm font-semibold">Price</th>
+                    <th className="px-6 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className={darkMode ? "bg-black" : "bg-white"}>
+                  {filteredExpenses.map((exp: any) => (
+                    <tr key={exp.id} className={`border-b transition ${darkMode ? "border-gray-700 hover:bg-gray-900" : "border-gray-200 hover:bg-gray-50"}`}>
+                      <td className="px-6 py-4">
+                        <Image
+                          src={categoryIcons[exp.category] || "/default.png"}
+                          alt={exp.category}
+                          width={24}
+                          height={24}
+                          className="rounded"
                         />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-center text-gray-500">No data to display.</p>
-              )}
+                      </td>
+                      <td className="px-6 py-4 font-medium">{exp.title}</td>
+                      <td className="px-6 py-4">{exp.category}</td>
+                      <td className="px-6 py-4 font-semibold">Rs.{exp.amount}</td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {new Date(exp.date).toDateString()}
+                      </td>
+                      <td className="px-6 py-4">Rs.{exp.price || exp.amount}</td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleRemove(exp.id)}
+                          className="text-red-500 hover:text-red-700 font-semibold"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card Layout */}
+            <div className="lg:hidden space-y-4">
+              {filteredExpenses.map((exp: any) => (
+                <div key={exp.id} className={`p-4 rounded-xl shadow-md border transition-colors ${
+                  darkMode ? "bg-black border-gray-600" : "bg-white border-gray-200"
+                }`}>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={categoryIcons[exp.category] || "/default.png"}
+                        alt={exp.category}
+                        width={32}
+                        height={32}
+                        className="rounded"
+                      />
+                      <div>
+                        <h3 className="font-semibold text-lg">{exp.title}</h3>
+                        <p className="text-sm text-gray-500">{exp.category}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleRemove(exp.id)}
+                      className="text-red-500 hover:text-red-700 font-semibold text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xl font-bold text-green-600">Rs. {exp.amount}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(exp.date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className={`text-center py-12 rounded-2xl shadow-md border ${
+            darkMode ? "bg-black border-gray-600" : "bg-white border-gray-200"
+          }`}>
+            <p className="text-gray-500 text-lg">No expenses found.</p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+            >
+              Add Your First Expense
+            </button>
           </div>
+        )}
+      </div>
+
+      {/* Category Breakdown Chart */}
+      <div className={`mx-4 p-4 md:p-6 rounded-2xl shadow border-1 ${
+        darkMode ? "bg-black text-white" : "bg-white" 
+      }`}>
+        <h3 className="text-xl md:text-2xl font-semibold mb-4 text-center">
+          Category Breakdown
+        </h3>
+        {chartData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={250}>
+            <PieChart>
+              <Pie
+                data={chartData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={80}
+                fill="#8884d8"
+                label
+              >
+                {chartData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                  border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
+                  borderRadius: "8px",
+                  fontSize: "12px"
+                }}
+              />
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-center text-gray-500 py-12">No data to display.</p>
+        )}
+      </div>
           </>
         );
     }
@@ -794,9 +875,86 @@ export default function ExpensesPage() {
       darkMode ? "bg-black text-white" : "bg-gray-50 text-black"
     }`}
   >
-    {/* Sidebar */}
+    {/* Mobile Header */}
+    <div className={`lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 shadow-lg ${
+      darkMode ? "bg-black border-b border-gray-700" : "bg-white border-b border-gray-200"
+    }`}>
+      <h1 className="text-xl font-bold">Expenses Tracker</h1>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+        >
+          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
+        <button
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+    </div>
+
+    {/* Mobile Sidebar Overlay */}
+    {isMobileSidebarOpen && (
+      <div className="lg:hidden fixed inset-0 z-50">
+        <div 
+          className="absolute inset-0 bg-black bg-opacity-50"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        ></div>
+        <div className={`absolute left-0 top-0 bottom-0 w-64 shadow-lg ${
+          darkMode ? "bg-black" : "bg-white"
+        }`}>
+          <div className="flex items-center justify-between p-6">
+            <h1 className="text-xl font-bold">Expenses Tracker</h1>
+            <button
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+
+          <nav className="mt-6 flex flex-col gap-1 flex-1">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => handleMobileNavClick(item.id)}
+                className={`w-full flex items-center p-4 transition-colors duration-200 ${
+                  activeTab === item.id
+                    ? darkMode
+                      ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
+                      : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
+                    : darkMode
+                    ? "text-gray-300 hover:bg-gray-700/40"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+              >
+                <span className="text-lg">{item.icon}</span>
+                <span className="ml-3 font-medium">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="mt-auto p-4">
+            <button
+              onClick={() => {
+                setShowForm(true);
+                setIsMobileSidebarOpen(false);
+              }}
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+            >
+              + Add Expense
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Desktop Sidebar */}
     <div
-      className={`shadow-lg flex flex-col transition-all duration-300 ${
+      className={`hidden lg:flex shadow-lg flex-col transition-all duration-300 ${
         darkMode ? "bg-black text-white" : "bg-white text-black"
       } ${isMinimized ? "w-20" : "w-64"}`}
     >
@@ -821,7 +979,7 @@ export default function ExpensesPage() {
         </div>
       </div>
 
-      {/* Sidebar Nav Items */}
+      {/* Desktop Sidebar Nav Items */}
       <nav className="mt-6 flex flex-col gap-1 flex-1">
         {sidebarItems.map((item) => (
           <button
@@ -845,19 +1003,21 @@ export default function ExpensesPage() {
         ))}
       </nav>
 
-      {/* Add Expense Button at Sidebar Bottom */}
+      {/* Add Expense Button at Desktop Sidebar Bottom */}
       <div className="mt-auto p-4">
         <button
           onClick={() => setShowForm(true)}
-          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+          className={`w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+            isMinimized ? "px-2 text-xs" : ""
+          }`}
         >
-          + Add Expense
+          {isMinimized ? "+" : "+ Add Expense"}
         </button>
       </div>
     </div>
 
     {/* Main Content */}
-    <div className="flex-1 p-8 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto pt-16 lg:pt-0 p-4 lg:p-8">
       {renderContent()}
     </div>
   </div>
