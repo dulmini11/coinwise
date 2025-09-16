@@ -525,18 +525,18 @@ export default function ExpensesPage() {
           <>
       {/* Add Expense Modal */}
         {showForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
           <div
-            className={`rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100 animate-in zoom-in-95 
+            className={`rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95 
               ${darkMode ? "bg-black text-white border border-gray-600" : "bg-white text-gray-700"}`}
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-4 md:p-6 rounded-t-3xl">
+            <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg md:text-xl font-bold">Add New Expense +</h3>
+                <h3 className="text-xl font-bold">Add New Expense +</h3>
                 <button 
                   onClick={() => setShowForm(false)}
-                  className="text-white hover:bg-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                  className="text-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
                 >
                   ✕
                 </button>
@@ -545,7 +545,7 @@ export default function ExpensesPage() {
             </div>
 
             {/* Form Content */}
-            <div className="p-4 md:p-6 space-y-4 md:space-y-5">
+            <div className="p-6 space-y-5">
               {/* Title Input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700">Expense Title</label>
@@ -585,7 +585,7 @@ export default function ExpensesPage() {
                   onChange={(e) =>
                     setNewExpense({ ...newExpense, category: e.target.value })
                   }
-                  className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-gray/90"
+                  className=" w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-gray/90"
                 >
                   {categories.map((cat, index) => (
                     <option key={index} value={cat}>
