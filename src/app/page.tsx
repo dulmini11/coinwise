@@ -304,7 +304,196 @@ export default function ExpensesPage() {
     switch (activeTab) {
       case "home":
         return (
-          <div className="flex items-center justify-center h-96">
+          <div className="space-y-8">
+            {/* Hero Section */}
+            <div className="text-center px-4 py-8">
+              <div className="mb-6">
+                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-green-500 bg-clip-text text-transparent mb-4">
+                  Coin Wish
+                </h1>
+                <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                  Transform your financial dreams into reality. Track, analyze, and optimize your expenses with intelligent insights.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  Start Tracking
+                </button>
+                <button
+                  onClick={() => setActiveTab("graph")}
+                  className="border-2 border-purple-600 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white font-semibold py-3 px-8 rounded-full transition-all duration-200"
+                >
+                  View Analytics
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+              <div className={`p-6 rounded-2xl shadow-lg border-l-4 border-purple-500 transform hover:scale-105 transition-all duration-200 ${
+                darkMode ? "bg-black" : "bg-white"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Expenses</p>
+                    <p className="text-2xl font-bold text-purple-600">Rs. {total.toLocaleString()}</p>
+                  </div>
+                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-full">
+                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-6 rounded-2xl shadow-lg border-l-4 border-green-500 transform hover:scale-105 transition-all duration-200 ${
+                darkMode ? "bg-black" : "bg-white"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">This Month</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      Rs. {expenses.filter(exp => {
+                        const expDate = new Date(exp.date);
+                        const now = new Date();
+                        return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
+                      }).reduce((sum, exp) => sum + exp.amount, 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-full">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`p-6 rounded-2xl shadow-lg border-l-4 border-blue-500 transform hover:scale-105 transition-all duration-200 ${
+                darkMode ? "bg-black" : "bg-white"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Categories</p>
+                    <p className="text-2xl font-bold text-blue-600">{categories.length}</p>
+                  </div>
+                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Expenses */}
+            <div className={`mx-4 p-6 rounded-2xl shadow-lg ${darkMode ? "bg-black" : "bg-white"}`}>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold">Recent Expenses</h3>
+                <button
+                  onClick={() => setActiveTab("all_expenses")}
+                  className="text-purple-600 hover:text-purple-800 font-medium text-sm flex items-center gap-1"
+                >
+                  View All
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+              
+              {expenses.length > 0 ? (
+                <div className="space-y-3">
+                  {expenses.slice(0, 5).map((exp) => (
+                    <div key={exp.id} className={`flex items-center justify-between p-4 rounded-xl border ${
+                      darkMode ? "border-gray-700 hover:border-gray-600" : "border-gray-200 hover:border-gray-300"
+                    } transition-colors cursor-pointer`}>
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg">
+                          <Image
+                            src={categoryIcons[exp.category] || "/default.png"}
+                            alt={exp.category}
+                            width={20}
+                            height={20}
+                          />
+                        </div>
+                        <div>
+                          <p className="font-medium">{exp.title}</p>
+                          <p className="text-sm text-gray-500">{exp.category}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-purple-600">Rs. {exp.amount}</p>
+                        <p className="text-xs text-gray-500">{new Date(exp.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-medium mb-2">No expenses yet</h4>
+                  <p className="text-gray-500 mb-4">Start tracking your expenses to see them here</p>
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200"
+                  >
+                    Add First Expense
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
+              <div className={`p-6 rounded-2xl shadow-lg ${darkMode ? "bg-black" : "bg-white"}`}>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full">
+                    <BarChart3 className="w-6 h-6 text-green-600" />
+                  </div>
+                  <h4 className="text-lg font-bold">Smart Analytics</h4>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Get detailed insights into your spending patterns with interactive charts and graphs.
+                </p>
+                <button
+                  onClick={() => setActiveTab("graph")}
+                  className="text-green-600 hover:text-green-800 font-medium flex items-center gap-1"
+                >
+                  Explore Analytics
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className={`p-6 rounded-2xl shadow-lg ${darkMode ? "bg-black" : "bg-white"}`}>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="p-3 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-full">
+                    <Calculator className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <h4 className="text-lg font-bold">Built-in Calculator</h4>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  Quick calculations at your fingertips with our smart calculator feature.
+                </p>
+                <button
+                  onClick={() => setActiveTab("calculator")}
+                  className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
+                >
+                  Use Calculator
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         );
       
