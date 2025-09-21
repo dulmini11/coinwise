@@ -1194,15 +1194,25 @@ export default function ExpensesPage() {
 
       {/* Add Expense Button at Desktop Sidebar Bottom */}
       <div className="mt-auto p-4">
-        <button
-          onClick={() => setShowForm(true)}
-          className={`w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
-            isMinimized ? "px-2 text-xs" : ""
-          }`}
-        >
-          {isMinimized ? "+" : "+ Add Expense"}
-        </button>
+        <div className="relative group w-full">
+          <button
+            onClick={() => setShowForm(true)}
+            className={`w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+              isMinimized ? "px-2 text-xs" : ""
+            }`}
+          >
+            {isMinimized ? "+" : "+ Add Expense"}
+          </button>
+
+          {/* Tooltip only when minimized */}
+          {isMinimized && (
+            <span className="mt-2 whitespace-nowrap rounded-lg bg-green-900/30 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              Add your expenses
+            </span>
+          )}
+        </div>
       </div>
+
     </div>
 
     {/* Main Content */}
