@@ -1078,9 +1078,9 @@ export default function ExpensesPage() {
         </button>
         <button
           onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+          className="p-2"
         >
-          <Menu size={24} />
+          <Menu size={24}/>
         </button>
       </div>
     </div>
@@ -1099,7 +1099,7 @@ export default function ExpensesPage() {
             <h1 className="text-xl font-bold">Expenses Tracker</h1>
             <button
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+              className="p-1"
             >
               <Menu size={20} />
             </button>
@@ -1147,11 +1147,11 @@ export default function ExpensesPage() {
         darkMode ? "bg-black text-white" : "bg-white text-black"
       } ${isMinimized ? "w-20" : "w-64"}`}
     >
-      <div className="flex items-center justify-between p-6">
+      <div className="flex items-center justify-between pt-6 pb-6 pl-2">
         {!isMinimized && (
           <h1 className="text-xl font-bold">Expenses Tracker</h1>
         )}
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           {/* Dark Mode Toggle */}
           <button
             onClick={() => setDarkMode(!darkMode)}
@@ -1161,7 +1161,6 @@ export default function ExpensesPage() {
           </button>
           <button
             onClick={() => setIsMinimized(!isMinimized)}
-            className="rounded hover:bg-gray-300/30 dark:hover:bg-gray-700"
           >
             <Menu size={24} />
           </button>
