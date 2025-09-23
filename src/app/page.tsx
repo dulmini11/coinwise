@@ -738,7 +738,7 @@ export default function ExpensesPage() {
             <div className="p-6 space-y-5">
               {/* Title Input */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Expense Title</label>
+                <label className="text-sm font-medium text-gray-500">Expense Title</label>
                 <input
                   type="text"
                   placeholder="e.g., Coffee, Groceries, Gas"
@@ -752,7 +752,7 @@ export default function ExpensesPage() {
 
               {/* Amount Input */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Amount</label>
+                <label className="text-sm font-medium text-gray-500">Amount</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rs</span>
                   <input
@@ -769,7 +769,7 @@ export default function ExpensesPage() {
 
               {/* Category Section */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Category</label>
+                <label className="text-sm font-medium text-gray-500">Category</label>
                 <select
                   value={newExpense.category}
                   onChange={(e) =>
@@ -804,7 +804,7 @@ export default function ExpensesPage() {
 
               {/* Date Input */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">Date</label>
+                <label className="text-sm font-medium text-gray-500">Date</label>
 
                 <div className="relative">
                   <input
@@ -846,7 +846,7 @@ export default function ExpensesPage() {
             <div className="p-4 pt-0 flex gap-2">
               <button
                 onClick={() => setShowForm(false)}
-                className="flex-1 px-3 py-2 border-2 border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-green hover:border-red transition-colors text-sm"
+                className="flex-1 px-3 py-2 border-2 border-red-500 text-red-500 rounded-lg font-medium hover:bg-green hover:border-red transition-colors text-sm"
               >
                 Cancel
               </button>
