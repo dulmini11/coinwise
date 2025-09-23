@@ -18,6 +18,7 @@ import {
   Bar
 } from "recharts";
 import { Home, Book, BarChart3, Menu, Moon, Sun, Calculator } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import Image from "next/image";
 import cancel from "../../public/cancel.png"; 
 
@@ -803,13 +804,41 @@ export default function ExpensesPage() {
 
               {/* Date Input */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Date</label>
-                <input
-                  type="date"
-                  value={newExpense.date}
-                  onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                  className="w-full border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none"
-                />
+                <label className="text-sm font-medium text-gray-300">Date</label>
+
+                <div className="relative">
+                  <input
+                    id="dateInput"
+                    type="date"
+                    value={newExpense.date}
+                    onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                    className="w-full border-2 border-gray-300 p-3 rounded-xl outline-none pr-10"
+                  />
+
+                  <button
+                    type="button"
+                    aria-label="Open date picker"
+                    onClick={() => {
+                      const input = document.getElementById("dateInput") as HTMLInputElement | null;
+                      if (!input) return;
+
+                      // Preferred (Chromium): showPicker()
+                      if (typeof (input as any).showPicker === "function") {
+                        (input as any).showPicker();
+                        return;
+                      }
+
+                      // Fallback: focus + click (may not open native picker in all browsers)
+                      input.focus();
+                      try {
+                        input.click();
+                      } catch {}
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10"
+                  >
+                    <CalendarIcon className={`${darkMode ? "text-white" : "text-black"} w-5 h-5`} />
+                  </button>
+                </div>
               </div>
             </div>
 
