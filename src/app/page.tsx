@@ -24,7 +24,7 @@ import cancel from "../../public/cancel.png";
 
 export default function ExpensesPage() {
   // States
-  const [activeTab, setActiveTab] = useState("all_expenses"); // Navigation state
+  const [activeTab, setActiveTab] = useState("home"); // Navigation state
   const [isMinimized, setIsMinimized] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // New mobile state
   const [categories, setCategories] = useState<string[]>([
@@ -38,7 +38,7 @@ export default function ExpensesPage() {
   const [sortBy, setSortBy] = useState("date");
   const [search, setSearch] = useState("");
   const [expenses, setExpenses] = useState<any[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>(""); // New state for month selection
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
@@ -658,8 +658,34 @@ export default function ExpensesPage() {
         
       case "calculator":
         return (
-          <div className="w-full max-w-sm mx-auto p-4">
-            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-4 md:p-6 relative overflow-hidden">
+          <div className="relative min-h-screen overflow-hidden p-4">
+            
+            {/* Animated Geometric Shapes */}
+            <div className="absolute inset-0 overflow-hidden">
+              {/* Squares */}
+              <div className="absolute top-20 left-20 w-16 h-16 bg-blue-200/20 dark:bg-blue-500/10 rotate-12 animate-float-slow"></div>
+              <div className="absolute top-60 right-32 w-12 h-12 bg-purple-200/30 dark:bg-purple-500/15 rotate-45 animate-float-delayed"></div>
+              <div className="absolute bottom-40 left-16 w-20 h-20 bg-indigo-200/25 dark:bg-indigo-500/10 rotate-12 animate-spin-slow"></div>
+              <div className="absolute bottom-20 right-20 w-8 h-8 bg-cyan-200/40 dark:bg-cyan-500/20 rotate-45 animate-float-slow"></div>
+              
+              {/* Circles */}
+              <div className="absolute top-32 right-16 w-24 h-24 bg-blue-300/15 dark:bg-blue-400/10 rounded-full animate-pulse-gentle"></div>
+              <div className="absolute top-80 left-40 w-32 h-32 bg-purple-300/10 dark:bg-purple-400/8 rounded-full animate-float-delayed"></div>
+              <div className="absolute bottom-60 right-40 w-16 h-16 bg-indigo-300/20 dark:bg-indigo-400/12 rounded-full animate-bounce-gentle"></div>
+              <div className="absolute bottom-80 left-60 w-12 h-12 bg-cyan-300/25 dark:bg-cyan-400/15 rounded-full animate-pulse-gentle"></div>
+              
+              {/* Triangles (using CSS borders) */}
+              <div className="absolute top-40 left-60 w-0 h-0 border-l-8 border-r-8 border-b-16 border-transparent border-b-blue-200/20 dark:border-b-blue-500/10 animate-float-slow"></div>
+              <div className="absolute bottom-32 right-60 w-0 h-0 border-l-6 border-r-6 border-b-12 border-transparent border-b-purple-200/30 dark:border-b-purple-500/15 animate-spin-slow"></div>
+              
+              {/* Diamonds */}
+              <div className="absolute top-72 right-80 w-10 h-10 bg-indigo-200/20 dark:bg-indigo-500/12 transform rotate-45 animate-float-delayed"></div>
+              <div className="absolute bottom-72 left-80 w-14 h-14 bg-cyan-200/15 dark:bg-cyan-500/10 transform rotate-45 animate-bounce-gentle"></div>
+            </div>
+
+            {/* Calculator Container */}
+            <div className="w-full max-w-sm mx-auto p-2">
+            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-2 md:p-6 relative overflow-hidden">
               
               {/* Title */}
               <div className="flex items-center justify-between mb-4">
@@ -706,6 +732,37 @@ export default function ExpensesPage() {
                 💡 Use keyboard: numbers, + - * /, Enter (=), Backspace (DEL), Esc (AC)
               </div>
             </div>
+          </div>
+
+            {/* Simple CSS Animations */}
+            <style jsx>{`
+              @keyframes float-slow {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-15px) rotate(5deg); }
+              }
+              @keyframes float-delayed {
+                0%, 100% { transform: translateY(0px) rotate(0deg); }
+                50% { transform: translateY(-20px) rotate(-5deg); }
+              }
+              @keyframes spin-slow {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+              }
+              @keyframes pulse-gentle {
+                0%, 100% { opacity: 0.3; }
+                50% { opacity: 0.6; }
+              }
+              @keyframes bounce-gentle {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+              }
+
+              .animate-float-slow { animation: float-slow 6s ease-in-out infinite; }
+              .animate-float-delayed { animation: float-delayed 8s ease-in-out infinite; }
+              .animate-spin-slow { animation: spin-slow 20s linear infinite; }
+              .animate-pulse-gentle { animation: pulse-gentle 4s ease-in-out infinite; }
+              .animate-bounce-gentle { animation: bounce-gentle 3s ease-in-out infinite; }
+            `}</style>
           </div>
         );
 
@@ -1205,11 +1262,11 @@ export default function ExpensesPage() {
             className={`w-full flex items-center p-4 transition-colors duration-200 ${
               activeTab === item.id
                 ? darkMode
-                  ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
+                  ? "bg-gray-700/20 text-white border-r-4 border-purple-500"
                   : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
                 : darkMode
                 ? "text-gray-300 hover:bg-gray-700/40"
-                : "text-gray-700/40 hover:bg-gray-100 hover:text-gray-900"
+                : "text-gray-900 hover:bg-gray-100 hover:text-gray-900"
             }`}
           >
             <span className="text-lg">{item.icon}</span>
@@ -1244,7 +1301,7 @@ export default function ExpensesPage() {
     </div>
 
     {/* Main Content */}
-    <div className="flex-1 overflow-y-auto pt-16 lg:pt-0 p-4 lg:p-8">
+    <div className="flex-1 overflow-y-auto pt-16 lg:pt-0 p-4 lg:p-0">
       {renderContent()}
     </div>
   </div>
