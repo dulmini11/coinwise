@@ -312,7 +312,7 @@ export default function ExpensesPage() {
                 <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-green-500 bg-clip-text text-transparent mb-4">
                   Coin Wish
                 </h1>
-                <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                <p className="text-lg md:text-xl text-gray-600 dark:text-gray-500 max-w-2xl mx-auto">
                   Transform your financial dreams into reality. Track, analyze, and optimize your expenses with intelligent insights.
                 </p>
               </div>
@@ -320,13 +320,13 @@ export default function ExpensesPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button
                   onClick={() => setShowForm(true)}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
+                  className="bg-gradient-to-r from-purple-700/30 to-blue-700/80 hover:from-purple-800 hover:to-blue-900 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
                   Start Tracking
                 </button>
                 <button
                   onClick={() => setActiveTab("graph")}
-                  className="border-2 border-purple-600 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white font-semibold py-3 px-8 rounded-full transition-all duration-200"
+                  className="border-2 border-purple-600 text-purple-600 dark:text-purple-400 hover:bg-purple-900/30 hover:text-white font-semibold py-3 px-8 rounded-full transition-all duration-200"
                 >
                   View Analytics
                 </button>
@@ -434,19 +434,13 @@ export default function ExpensesPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div onClick={() => setShowForm(true)} className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
                   </div>
                   <h4 className="text-lg font-medium mb-2">No expenses yet</h4>
                   <p className="text-gray-500 mb-4">Start tracking your expenses to see them here</p>
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-all duration-200"
-                  >
-                    Add First Expense
-                  </button>
                 </div>
               )}
             </div>
@@ -655,7 +649,7 @@ export default function ExpensesPage() {
             </div>
           </div>
         );
-        
+
       case "calculator":
         return (
           <div className="relative min-h-screen overflow-hidden p-4">
@@ -909,7 +903,7 @@ export default function ExpensesPage() {
               </button>
               <button
                 onClick={handleAddExpense}
-                className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-md text-sm"
+                className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-md text-sm"
               >
                 Add Expense
               </button>
@@ -1001,7 +995,7 @@ export default function ExpensesPage() {
             {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto rounded-2xl shadow-md border border-gray-200">
               <table className="w-full text-left border-collapse">
-                <thead className={`${darkMode ? "bg-gray-800" : "bg-gray-100"}`}>
+                <thead className={`${darkMode ? "bg-gray-800/30" : "bg-gray-100"}`}>
                   <tr>
                     <th className="px-6 py-3 text-sm font-semibold">Icon</th>
                     <th className="px-6 py-3 text-sm font-semibold">Title</th>
@@ -1014,7 +1008,7 @@ export default function ExpensesPage() {
                 </thead>
                 <tbody className={darkMode ? "bg-black" : "bg-white"}>
                   {filteredExpenses.map((exp: any) => (
-                    <tr key={exp.id} className={`border-b transition ${darkMode ? "border-gray-700 hover:bg-gray-900" : "border-gray-200 hover:bg-gray-50"}`}>
+                    <tr key={exp.id} className={`border-b transition ${darkMode ? "border-gray-700 hover:bg-gray-900/30" : "border-gray-200 hover:bg-gray-50"}`}>
                       <td className="px-6 py-4">
                         <Image
                           src={categoryIcons[exp.category] || "/default.png"}
@@ -1088,10 +1082,14 @@ export default function ExpensesPage() {
           <div className={`text-center py-12 rounded-2xl shadow-md border ${
             darkMode ? "bg-black border-gray-600" : "bg-white border-gray-200"
           }`}>
-            <p className="text-gray-500 text-lg">No expenses found.</p>
+            <p className="text-gray-500 text-2xl">No expenses found.</p>
+            <div onClick={() => setShowForm(true)} className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto flex items-center justify-center mt-7">
+                    <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
             <button
-              onClick={() => setShowForm(true)}
-              className="mt-4 bg-gradient-to-r from-purple-700 to-purple-950 hover:from-purple-700 hover:to-purple-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+              className="mt-1 bg-gradient-to-r text-gray-500 font-medium py-2 px-4 rounded-lg transition-all duration-200"
             >
               Add Your First Expense
             </button>
@@ -1218,7 +1216,7 @@ export default function ExpensesPage() {
                 setShowForm(true);
                 setIsMobileSidebarOpen(false);
               }}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+              className="w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
             >
               + Add Expense
             </button>
@@ -1282,7 +1280,7 @@ export default function ExpensesPage() {
         <div className="relative group w-full">
           <button
             onClick={() => setShowForm(true)}
-            className={`w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+            className={`w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
               isMinimized ? "px-2 text-xs" : ""
             }`}
           >
@@ -1301,7 +1299,7 @@ export default function ExpensesPage() {
     </div>
 
     {/* Main Content */}
-    <div className="flex-1 overflow-y-auto pt-16 lg:pt-0 p-4 lg:p-0">
+    <div className="flex-1 overflow-y-auto pt-16 lg:pt-5 p-4 lg:p-5">
       {renderContent()}
     </div>
   </div>
