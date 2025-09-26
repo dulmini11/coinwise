@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import expensesData from "../data/expenses.json";
+import { useRouter } from 'next/navigation';
 import {
   PieChart,
   Pie,
@@ -41,6 +42,8 @@ export default function ExpensesPage() {
   const [darkMode, setDarkMode] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState<string>(""); // New state for month selection
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+  const [page, setPage] = useState<"all_expenses" | "add_expense">("all_expenses");
+
 
   const categoryIcons: Record<string, string> = {
     Shopping: "/icons/shopping.png",
@@ -434,7 +437,11 @@ export default function ExpensesPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div onClick={() => setShowForm(true)} className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <div onClick={() => {
+                    setActiveTab("all_expenses");
+                    setShowForm(true);
+                  }}
+                  className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                     <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
@@ -496,7 +503,7 @@ export default function ExpensesPage() {
         return (
           <div className="space-y-8">
             <div className="text-center px-4">
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">Daily Expenses Overview</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mt-10+ Add Expense mb-2">Daily Expenses Overview</h2>
               <p className="text-gray-600">Track your daily spending patterns</p>
             </div>
 
@@ -1213,9 +1220,9 @@ export default function ExpensesPage() {
           <div className="mt-auto p-4">
             <button
               onClick={() => {
-                setShowForm(true);
-                setIsMobileSidebarOpen(false);
-              }}
+              setActiveTab("all_expenses");
+              setShowForm(true);
+            }}
               className="w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
             >
               + Add Expense
@@ -1279,7 +1286,10 @@ export default function ExpensesPage() {
       <div className="mt-auto p-4">
         <div className="relative group w-full">
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+            setActiveTab("all_expenses");
+            setShowForm(true);
+          }}
             className={`w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
               isMinimized ? "px-2 text-xs" : ""
             }`}
