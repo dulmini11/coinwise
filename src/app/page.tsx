@@ -776,7 +776,7 @@ export default function ExpensesPage() {
         <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
           <div
             className={`rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95 
-              ${darkMode ? "bg-black text-white border border-gray-600" : "bg-white text-gray-700"}`}
+              ${darkMode ? "bg-black text-white border border-black" : "bg-white text-gray-700"}`}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
@@ -836,7 +836,7 @@ export default function ExpensesPage() {
                   className=" w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-gray/90"
                 >
                   {categories.map((cat, index) => (
-                    <option key={index} value={cat}>
+                    <option className="text-gray-700 bg-white/10" key={index} value={cat}>
                       {cat}
                     </option>
                   ))}
@@ -904,7 +904,7 @@ export default function ExpensesPage() {
             <div className="p-4 pt-0 flex gap-2">
               <button
                 onClick={() => setShowForm(false)}
-                className="flex-1 px-3 py-2 border-2 border-red-500 text-red-500 rounded-lg font-medium hover:bg-green hover:border-red transition-colors text-sm"
+                className="flex-1 px-3 py-2 bg-gradient-to-r from-red-500 to-red-800 bg hover:from-red-800 hover:to-red-500 text-white rounded-lg font-medium hover:bg-green hover:border-red transition-colors text-sm"
               >
                 Cancel
               </button>
