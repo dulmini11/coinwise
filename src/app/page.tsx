@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import expensesData from "../data/expenses.json";
-import { useRouter } from 'next/navigation';
+import { Listbox } from "@headlessui/react";
 import {
   PieChart,
   Pie,
@@ -18,7 +18,8 @@ import {
   BarChart,
   Bar
 } from "recharts";
-import { Home, Book, BarChart3, Menu, Moon, Sun, Calculator } from "lucide-react";
+import { Home, Book, BarChart3, Menu, Moon, Sun, Calculator} from "lucide-react";
+import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/20/solid";
 import { Calendar as CalendarIcon } from "lucide-react";
 import Image from "next/image";
 import cancel from "../../public/cancel.png"; 
@@ -828,19 +829,42 @@ export default function ExpensesPage() {
               {/* Category Section */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-500">Category</label>
-                <select
+
+                {/* Category Dropdown */}
+                <Listbox
                   value={newExpense.category}
-                  onChange={(e) =>
-                    setNewExpense({ ...newExpense, category: e.target.value })
-                  }
-                  className=" w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-gray/90"
+                  onChange={(val) => setNewExpense({ ...newExpense, category: val })}
                 >
-                  {categories.map((cat, index) => (
-                    <option className="text-gray-700 bg-white/10" key={index} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                  <div className="relative">
+                    {/* Selected Value */}
+                    <Listbox.Button className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white/5 text-gray-500 flex justify-between items-center">
+                      <span>{newExpense.category || "Select category"}</span>
+                      <ChevronUpDownIcon className="h-5 w-5 text-gray-400" />
+                    </Listbox.Button>
+
+                    {/* Options */}
+                    <Listbox.Options className="absolute mt-2 w-full bg-white/1 backdrop-blur-lg rounded-xl shadow-lg z-10">
+                      {categories.map((cat, index) => (
+                        <Listbox.Option
+                          key={index}
+                          value={cat}
+                          className={({ active }) =>
+                            `cursor-pointer px-4 py-2 text-gray-500 ${
+                              active ? "bg-purple-700/40" : ""
+                            }`
+                          }
+                        >
+                          {({ selected }) => (
+                            <div className="flex justify-between items-center">
+                              <span>{cat}</span>
+                              {selected && <CheckIcon className="h-4 w-4 text-purple-900" />}
+                            </div>
+                          )}
+                        </Listbox.Option>
+                      ))}
+                    </Listbox.Options>
+                  </div>
+                </Listbox>
 
                 {/* Add New Category */}
                 <div className="flex items-center gap-2 mt-3">
