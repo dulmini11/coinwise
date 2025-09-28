@@ -57,7 +57,7 @@ export default function ExpensesPage() {
     Education: "/icons/books.png",
     Housing: "/icons/house",
     Health:"/icons/health.png",
-    Savings:"/icons/savings"
+    Savings:"/icons/savings.png"
   };
 
   // Form state
@@ -420,7 +420,7 @@ export default function ExpensesPage() {
                       darkMode ? "border-gray-700 hover:border-gray-600" : "border-gray-200 hover:border-gray-300"
                     } transition-colors cursor-pointer`}>
                       <div className="flex items-center gap-4">
-                        <div className="p-2 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg">
+                        <div className="p-2 dark:to-blue-900/30 rounded-lg">
                           <Image
                             src={categoryIcons[exp.category] || "/default.png"}
                             alt={exp.category}
