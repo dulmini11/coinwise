@@ -33,6 +33,10 @@ export default function ExpensesPage() {
     "Food",
     "Travel",
     "Shopping",
+    "Education",
+    "Housing",
+    "Health",
+    "Savings",
   ]);
   const [category, setCategory] = useState<string>("All"); // for filtering
   const [newCategory, setNewCategory] = useState<string>("");
@@ -843,7 +847,7 @@ export default function ExpensesPage() {
                     </Listbox.Button>
 
                     {/* Options */}
-                    <Listbox.Options className="absolute mt-2 w-full bg-white/1 backdrop-blur-lg rounded-xl shadow-lg z-10">
+                    <Listbox.Options className="absolute mt-2 w-full max-h-60 overflow-y-auto border-2 border-purple-900 bg-white/5 backdrop-blur-lg rounded-xl shadow-lg z-10">
                       {categories.map((cat, index) => (
                         <Listbox.Option
                           key={index}
@@ -865,7 +869,6 @@ export default function ExpensesPage() {
                     </Listbox.Options>
                   </div>
                 </Listbox>
-
                 {/* Add New Category */}
                 <div className="flex items-center gap-2 mt-3">
                   <input
