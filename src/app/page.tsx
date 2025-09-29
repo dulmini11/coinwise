@@ -48,7 +48,10 @@ export default function ExpensesPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>(""); // New state for month selection
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
   const [page, setPage] = useState<"all_expenses" | "add_expense">("all_expenses");
-
+  const handleEdit = (expense: any) => {
+  setNewExpense(expense); // pre-fill the modal form with existing values
+  setShowForm(true); // open the modal
+};
 
   const categoryIcons: Record<string, string> = {
     Shopping: "/icons/shopping.png",
@@ -1060,6 +1063,12 @@ export default function ExpensesPage() {
                       </td>
                       <td className="px-6 py-4">Rs.{exp.price || exp.amount}</td>
                       <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleEdit(exp)}
+                          className="text-blue-500 hover:text-blue-700 font-semibold"
+                        >
+                          Edit
+                        </button>
                         <button
                           onClick={() => handleRemove(exp.id)}
                           className="text-red-500 hover:text-red-700 font-semibold"
