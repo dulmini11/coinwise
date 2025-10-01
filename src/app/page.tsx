@@ -48,42 +48,17 @@ export default function ExpensesPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>(""); // New state for month selection
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
   const [page, setPage] = useState<"all_expenses" | "add_expense">("all_expenses");
-const handleEdit = (expense: any) => {
-  setNewExpense({
-    title: expense.title,
-    amount: expense.amount,
-    category: expense.category,
-    date: expense.date,
-    price: expense.price || expense.amount,
-  });
-  setEditingId(expense.id);
-  setIsEditing(true);
-  setShowForm(true);
+  const handleEdit = (expense: any) => {
+  setNewExpense(expense); // pre-fill the modal form with existing values
+  setShowForm(true); // open the modal
 };
-
-const handleUpdateExpense = () => {
-  if (!editingId) return;
-
-  setExpenses((prev: any[]) =>
-    prev.map((exp) =>
-      exp.id === editingId ? { ...exp, ...newExpense } : exp
-    )
-  );
-
-  // Reset form
-  setIsEditing(false);
-  setEditingId(null);
-  setShowForm(false);
-  setNewExpense({ title: "", amount: "", category: "", date: "", price: "" });
-};
-
 
   const categoryIcons: Record<string, string> = {
     Shopping: "/icons/shopping.png",
     Food: "/icons/food.png",
     Travel: "/icons/transport.png",
     Education: "/icons/books.png",
-    Housing: "/icons/house",
+    Housing: "/icons/house.png",
     Health:"/icons/health.png",
     Savings:"/icons/savings.png"
   };
@@ -1087,22 +1062,23 @@ const handleUpdateExpense = () => {
                         {new Date(exp.date).toDateString()}
                       </td>
                       <td className="px-6 py-4">Rs.{exp.price || exp.amount}</td>
-                        <td className="px-6 py-4 flex gap-3">
-                          <button
-                            onClick={() => handleEdit(exp)}
-                            className="text-blue-500 hover:text-blue-700"
-                            title="Edit"
-                          >
-                            <Pencil size={18} />
-                          </button>
-                          <button
-                            onClick={() => handleRemove(exp.id)}
-                            className="text-red-500 hover:text-red-700"
-                            title="Remove"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleEdit(exp)}
+                          className="text-blue-500 hover:text-blue-700 mr-3"
+                          title="Edit"
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => handleRemove(exp.id)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Remove"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -1129,12 +1105,23 @@ const handleUpdateExpense = () => {
                         <p className="text-sm text-gray-500">{exp.category}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleRemove(exp.id)}
-                      className="text-red-500 hover:text-red-700 font-semibold text-sm"
-                    >
-                      Remove
-                    </button>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleEdit(exp)}
+                          className="text-blue-500 hover:text-blue-700 mr-3"
+                          title="Edit"
+                        >
+                          <Pencil size={18} />
+                        </button>
+
+                        <button
+                          onClick={() => handleRemove(exp.id)}
+                          className="text-red-500 hover:text-red-700"
+                          title="Remove"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                        </td>
                   </div>
                   <div className="flex justify-between items-center">
                     <div>
