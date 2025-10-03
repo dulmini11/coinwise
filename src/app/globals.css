@@ -5,3 +5,9 @@
   --foreground: #171717;
 }
 
+/* Hide the native date picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  -webkit-appearance: none;
+  display: none;
+}
