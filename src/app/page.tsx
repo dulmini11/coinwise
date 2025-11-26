@@ -59,6 +59,8 @@ export default function ExpensesPage() {
   const [showForm, setShowForm] = useState<boolean>(false)
   const [display, setDisplay] = useState<string>("0")
   const [overwrite, setOverwrite] = useState<boolean>(true)
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
+  const [showEditForm, setShowEditForm] = useState<boolean>(false)
 
   // ==================== CONSTANTS ====================
 
@@ -122,49 +124,57 @@ export default function ExpensesPage() {
         return
       }
 
-      if (value === "+/-") {
+      if (value === "=") {
         setDisplay((d: string) => {
-          if (d.startsWith("-")) {
-            return d.slice(1)
-          } else {
-            return "-" + d
+          try {
+            const result = new Function("return " + d)()
+            const output = Math.round(result * 100000000) / 100000000
+            setOverwrite(true)
+            return output.toString()
+          } catch {
+            return "Error"
           }
         })
         return
       }
 
-      if (value === "=") {
-        try {
-          const result: number = eval(display)
-          setDisplay(result.toString())
-          setOverwrite(true)
-        } catch {
-          setDisplay("Error")
-          setOverwrite(true)
-        }
+      if (value === "+/-") {
+        setDisplay((d: string) => {
+          const num = Number.parseFloat(d)
+          return (num * -1).toString()
+        })
         return
       }
 
-      if (["+", "-", "*", "/", "%"].includes(value)) {
+      if (value === "%") {
+        setDisplay((d: string) => {
+          const num = Number.parseFloat(d)
+          return (num / 100).toString()
+        })
+        return
+      }
+
+      if (["+", "-", "*", "/"].includes(value)) {
         setDisplay((d: string) => d + value)
         setOverwrite(false)
         return
       }
 
       if (value === ".") {
-        if (display.includes(".")) return
-        setDisplay((d: string) => (overwrite ? "0." : d + "."))
-        setOverwrite(false)
+        if (!display.includes(".")) {
+          setDisplay((d: string) => d + ".")
+          setOverwrite(false)
+        }
         return
       }
 
-      // Handle number input
-      if (overwrite) {
-        setDisplay(value)
-        setOverwrite(false)
-      } else {
-        setDisplay((d: string) => d + value)
-      }
+      setDisplay((d: string) => {
+        if (overwrite) {
+          setOverwrite(false)
+          return value
+        }
+        return d + value
+      })
     },
     [display, overwrite],
   )
@@ -173,42 +183,77 @@ export default function ExpensesPage() {
    * Handles editing an expense by populating the form with existing values
    * @param expense - The expense object to edit
    */
-  const handleEdit = useCallback((expense: Expense): void => {
+  // const handleEdit = useCallback((expense: Expense): void => {
+  //   setNewExpense({
+  //     title: expense.title,
+  //     amount: expense.amount.toString(),
+  //     category: expense.category,
+  //     date: expense.date,
+  //   })
+  //   setShowForm(true)
+  // }, [])
+
+  /**
+   * Handles adding a new expense to the list
+   */
+  const handleAddExpense = (): void => {
+    if (newExpense.title && newExpense.amount && newExpense.date) {
+      const expense: Expense = {
+        id: Date.now(),
+        title: newExpense.title,
+        category: newExpense.category,
+        amount: Number.parseFloat(newExpense.amount),
+        date: newExpense.date,
+      }
+      setExpenses([...expenses, expense])
+      setNewExpense({ title: "", amount: "", category: "Food", date: "" })
+      setShowForm(false)
+    }
+  }
+
+  /**
+   * Handles updating an existing expense
+   */
+  const handleUpdateExpense = (): void => {
+    if (editingExpense && newExpense.title && newExpense.amount && newExpense.date) {
+      const updatedExpenses = expenses.map((exp: Expense) =>
+        exp.id === editingExpense.id
+          ? {
+              ...exp,
+              title: newExpense.title,
+              category: newExpense.category,
+              amount: Number.parseFloat(newExpense.amount),
+              date: newExpense.date,
+            }
+          : exp,
+      )
+      setExpenses(updatedExpenses)
+      setNewExpense({ title: "", amount: "", category: "Food", date: "" })
+      setShowEditForm(false)
+      setEditingExpense(null)
+    }
+  }
+
+  /**
+   * Opens the edit form with selected expense data
+   */
+  const handleEditClick = (expense: Expense): void => {
+    setEditingExpense(expense)
     setNewExpense({
       title: expense.title,
       amount: expense.amount.toString(),
       category: expense.category,
       date: expense.date,
     })
-    setShowForm(true)
-  }, [])
+    setShowEditForm(true)
+  }
 
   /**
-   * Adds a new expense to the list
+   * Deletes an expense by id
    */
-  const handleAddExpense = useCallback((): void => {
-    if (!newExpense.title || !newExpense.amount || !newExpense.date) return
-
-    const id: number = Date.now()
-    const expense: Expense = {
-      id,
-      title: newExpense.title,
-      amount: Number.parseFloat(newExpense.amount),
-      category: newExpense.category,
-      date: newExpense.date,
-    }
-    setExpenses((prev: Expense[]) => [expense, ...prev])
-    setNewExpense({ title: "", amount: "", category: "Food", date: "" })
-    setShowForm(false)
-  }, [newExpense])
-
-  /**
-   * Removes an expense from the list
-   * @param id - The ID of the expense to remove
-   */
-  const handleRemove = useCallback((id: number): void => {
-    setExpenses((prev: Expense[]) => prev.filter((exp: Expense) => exp.id !== id))
-  }, [])
+  const handleDeleteExpense = (id: number): void => {
+    setExpenses(expenses.filter((exp: Expense) => exp.id !== id))
+  }
 
   /**
    * Adds a new category to the list
@@ -814,6 +859,172 @@ export default function ExpensesPage() {
               </div>
             )}
 
+            {/* Edit Expense Modal */}
+            {showEditForm && editingExpense && (
+              <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+                <div
+                  className={`rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95 
+                    ${darkMode ? "bg-black text-white border border-black" : "bg-white text-gray-700"}`}
+                >
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold">Edit Expense</h3>
+                      <button
+                        onClick={() => {
+                          setShowEditForm(false)
+                          setEditingExpense(null)
+                        }}
+                        className="text-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="text-purple-100 text-sm mt-1">Modify your expense details</p>
+                  </div>
+
+                  {/* Form Content */}
+                  <div className="p-6 space-y-5">
+                    {/* Title Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Expense Title</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Coffee, Groceries, Gas"
+                        value={newExpense.title}
+                        onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
+                        className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none placeholder-gray-400"
+                      />
+                    </div>
+
+                    {/* Amount Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Amount</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                          Rs
+                        </span>
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          value={newExpense.amount}
+                          onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                          className="w-full pl-8 pr-3 py-3 border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 rounded-xl transition-colors outline-none placeholder-gray-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Category Section */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Category</label>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            const dropdown = document.getElementById("editCategoryDropdown")
+                            if (dropdown) {
+                              dropdown.classList.toggle("hidden")
+                            }
+                          }}
+                          className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white/5 text-gray-500 flex justify-between items-center"
+                        >
+                          <span>{newExpense.category || "Select category"}</span>
+                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                            />
+                          </svg>
+                        </button>
+                        <div
+                          id="editCategoryDropdown"
+                          className="hidden absolute mt-2 w-full max-h-60 overflow-y-auto border-2 border-purple-900 bg-white/5 backdrop-blur-lg rounded-xl shadow-lg z-10"
+                        >
+                          {categories.map((cat: string, index: number) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                setNewExpense({ ...newExpense, category: cat })
+                                const dropdown = document.getElementById("editCategoryDropdown")
+                                if (dropdown) {
+                                  dropdown.classList.add("hidden")
+                                }
+                              }}
+                              className="w-full text-left px-4 py-2 text-gray-500 hover:bg-purple-700/40 transition-colors flex justify-between items-center"
+                            >
+                              <span>{cat}</span>
+                              {newExpense.category === cat && (
+                                <svg className="h-4 w-4 text-purple-900" fill="currentColor" viewBox="0 0 20 20">
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Date Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Date</label>
+                      <div className="relative">
+                        <input
+                          id="editDateInput"
+                          type="date"
+                          value={newExpense.date}
+                          onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                          className="w-full border-2 border-gray-300 p-3 rounded-xl outline-none pr-10"
+                        />
+                        <button
+                          type="button"
+                          aria-label="Open date picker"
+                          onClick={() => {
+                            const input = document.getElementById("editDateInput") as HTMLInputElement | null
+                            if (!input) return
+                            if (typeof (input as any).showPicker === "function") {
+                              ;(input as any).showPicker()
+                              return
+                            }
+                            input.focus()
+                            try {
+                              input.click()
+                            } catch {}
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 z-10"
+                        >
+                          <CalendarIcon className={`${darkMode ? "text-white" : "text-black"} w-5 h-5`} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div className="p-4 pt-0 flex gap-2">
+                    <button
+                      onClick={() => {
+                        setShowEditForm(false)
+                        setEditingExpense(null)
+                      }}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-red-500 to-red-800 hover:from-red-800 hover:to-red-500 text-white rounded-lg font-medium transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleUpdateExpense}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-md text-sm"
+                    >
+                      Update Expense
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Summary Section */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 px-4 mt-7">
               <div
@@ -940,7 +1151,7 @@ export default function ExpensesPage() {
                             <td className="px-6 py-4">Rs.{exp.price || exp.amount}</td>
                             <td className="px-6 py-4">
                               <button
-                                onClick={() => handleEdit(exp)}
+                                onClick={() => handleEditClick(exp)}
                                 className="text-blue-500 hover:text-blue-700 mr-3"
                                 title="Edit"
                               >
@@ -948,7 +1159,7 @@ export default function ExpensesPage() {
                               </button>
 
                               <button
-                                onClick={() => handleRemove(exp.id)}
+                                onClick={() => handleDeleteExpense(exp.id)}
                                 className="text-red-500 hover:text-red-700"
                                 title="Remove"
                               >
@@ -986,7 +1197,7 @@ export default function ExpensesPage() {
                           </div>
                           <div>
                             <button
-                              onClick={() => handleEdit(exp)}
+                              onClick={() => handleEditClick(exp)}
                               className="text-blue-500 hover:text-blue-700 mr-3"
                               title="Edit"
                             >
@@ -994,7 +1205,7 @@ export default function ExpensesPage() {
                             </button>
 
                             <button
-                              onClick={() => handleRemove(exp.id)}
+                              onClick={() => handleDeleteExpense(exp.id)}
                               className="text-red-500 hover:text-red-700"
                               title="Remove"
                             >
