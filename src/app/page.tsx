@@ -19,6 +19,10 @@ import { Home, Book, BarChart3, Menu, Moon, Sun, Calculator, Pencil, Trash2 } fr
 import { CalendarIcon } from "lucide-react"
 import Image from "next/image"
 
+type DateInputElement = HTMLInputElement & {
+  showPicker?: () => void
+}
+
 interface Expense {
   id: number
   title: string
@@ -423,7 +427,7 @@ export default function ExpensesPage() {
     return data
   }, [filteredExpenses])
 
-  // ==================== SIDEBARNAVIGATION ====================
+  // ==================== SIDEBAR NAVIGATION ====================
 
   const sidebarItems = [
     { id: "home", label: "Home", icon: <Home size={20} /> },
@@ -817,12 +821,12 @@ export default function ExpensesPage() {
                           type="button"
                           aria-label="Open date picker"
                           onClick={() => {
-                            const input = document.getElementById("dateInput") as HTMLInputElement | null
+                            const input = document.getElementById("dateInput") as DateInputElement | null
                             if (!input) return
 
                             // Preferred (Chromium): showPicker()
-                            if (typeof (input as any).showPicker === "function") {
-                              ;(input as any).showPicker()
+                            if (typeof input.showPicker === "function") {
+                              input.showPicker()
                               return
                             }
 
@@ -832,7 +836,7 @@ export default function ExpensesPage() {
                               input.click()
                             } catch {}
                           }}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 z-10"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10"
                         >
                           <CalendarIcon className={`${darkMode ? "text-white" : "text-black"} w-5 h-5`} />
                         </button>
@@ -984,10 +988,10 @@ export default function ExpensesPage() {
                           type="button"
                           aria-label="Open date picker"
                           onClick={() => {
-                            const input = document.getElementById("editDateInput") as HTMLInputElement | null
+                            const input = document.getElementById("editDateInput") as DateInputElement | null
                             if (!input) return
-                            if (typeof (input as any).showPicker === "function") {
-                              ;(input as any).showPicker()
+                            if (typeof input.showPicker === "function") {
+                              input.showPicker()
                               return
                             }
                             input.focus()
