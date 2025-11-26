@@ -1472,44 +1472,57 @@ export default function ExpensesPage() {
 
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileSidebarOpen(false)}></div>
-          <div className={`absolute left-0 top-0 bottom-0 w-64 shadow-lg ${darkMode ? "bg-black" : "bg-white"}`}>
-            <div className="flex items-center justify-between p-6">
-              <h1 className="text-xl font-bold">Expenses Tracker</h1>
+        <div className="lg:hidden fixed inset-0 z-50 flex justify-end">
+          {/* Overlay */}
+          <div
+            className="absolute inset-0 bg-opacity-50"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          ></div>
+
+          {/* Sidebar Box at Top Right */}
+          <div
+            className={`relative w-64 h-96 shadow-lg rounded-l-lg overflow-hidden mt-0 ${
+              darkMode ? "bg-black" : "bg-white"
+            }`}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h1 className="text-xl font-bold">.</h1>
               <button onClick={() => setIsMobileSidebarOpen(false)} className="p-1">
                 <Menu size={20} />
               </button>
             </div>
 
-            <nav className="mt-6 flex flex-col gap-1 flex-1">
+            {/* Navigation */}
+            <nav className="flex flex-col gap-1 p-4 overflow-y-auto h-[calc(100%-120px)]">
               {sidebarItems.map((item) => (
                 <button
                   key={item.id}
                   onClick={() => handleMobileNavClick(item.id)}
-                  className={`w-full flex items-center p-4 transition-colors duration-200 ${
+                  className={`w-full flex items-center p-2 transition-colors duration-200 rounded ${
                     activeTab === item.id
                       ? darkMode
                         ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
                         : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
                       : darkMode
-                        ? "text-gray-300 hover:bg-gray-700/40"
+                        ? "text-gray-300 hover:bg-gray-700/20"
                         : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                 >
                   <span className="text-lg">{item.icon}</span>
-                  <span className="ml-3 font-medium">{item.label}</span>
+                  <span className="ml-2 font-medium">{item.label}</span>
                 </button>
               ))}
             </nav>
 
-            <div className="mt-auto p-4">
+            {/* Add Expense Button */}
+            <div className="p-2 border-t border-gray-200">
               <button
                 onClick={() => {
-                  setActiveTab("all_expenses")
-                  setShowForm(true)
+                  setActiveTab("all_expenses");
+                  setShowForm(true);
                 }}
-                className="w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+                className="w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-2 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
               >
                 + Add Expense
               </button>
