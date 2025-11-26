@@ -1,8 +1,7 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useMemo } from "react";
-import expensesData from "../data/expenses.json";
-import { Listbox } from "@headlessui/react";
+import { useState, useEffect, useMemo, useCallback, type JSX } from "react"
+import expensesData from "../data/expenses.json"
 import {
   PieChart,
   Pie,
@@ -15,20 +14,26 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  BarChart,
-  Bar
-} from "recharts";
-import { Home, Book, BarChart3, Menu, Moon, Sun, Calculator, Pencil, Trash2} from "lucide-react";
-import { ChevronUpDownIcon, CheckIcon } from "@heroicons/react/20/solid";
-import { Calendar as CalendarIcon } from "lucide-react";
-import Image from "next/image";
-import cancel from "../../public/cancel.png"; 
+} from "recharts"
+import { Home, Book, BarChart3, Menu, Moon, Sun, Calculator, Pencil, Trash2 } from "lucide-react"
+import { CalendarIcon } from "lucide-react"
+import Image from "next/image"
+
+interface Expense {
+  id: number
+  title: string
+  category: string
+  amount: number
+  date: string
+  price?: number
+}
 
 export default function ExpensesPage() {
-  // States
-  const [activeTab, setActiveTab] = useState("home"); // Navigation state
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false); // New mobile state
+  // ==================== STATE DECLARATIONS ====================
+
+  const [activeTab, setActiveTab] = useState<string>("home")
+  const [isMinimized, setIsMinimized] = useState<boolean>(false)
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false)
   const [categories, setCategories] = useState<string[]>([
     "Food",
     "Travel",
@@ -37,21 +42,50 @@ export default function ExpensesPage() {
     "Housing",
     "Health",
     "Savings",
-  ]);
-  const [category, setCategory] = useState<string>("All"); // for filtering
-  const [newCategory, setNewCategory] = useState<string>("");
+  ])
+  const [category, setCategory] = useState<string>("All")
+  const [newCategory, setNewCategory] = useState<string>("")
+  const [sortBy, setSortBy] = useState<string>("date")
+  const [search, setSearch] = useState<string>("")
+  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [darkMode, setDarkMode] = useState<boolean>(true)
+  const [selectedMonth, setSelectedMonth] = useState<string>("")
+  const [newExpense, setNewExpense] = useState({
+    title: "",
+    amount: "",
+    category: "Food",
+    date: "",
+  })
+  const [showForm, setShowForm] = useState<boolean>(false)
+  const [display, setDisplay] = useState<string>("0")
+  const [overwrite, setOverwrite] = useState<boolean>(true)
 
-  const [sortBy, setSortBy] = useState("date");
-  const [search, setSearch] = useState("");
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [darkMode, setDarkMode] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState<string>(""); // New state for month selection
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
-  const [page, setPage] = useState<"all_expenses" | "add_expense">("all_expenses");
-  const handleEdit = (expense: any) => {
-  setNewExpense(expense); // pre-fill the modal form with existing values
-  setShowForm(true); // open the modal
-};
+  // ==================== CONSTANTS ====================
+
+  const COLORS: string[] = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"]
+
+  const buttons: string[] = [
+    "C",
+    "DEL",
+    "%",
+    "/",
+    "7",
+    "8",
+    "9",
+    "*",
+    "4",
+    "5",
+    "6",
+    "-",
+    "1",
+    "2",
+    "3",
+    "+",
+    "+/-",
+    "0",
+    ".",
+    "=",
+  ]
 
   const categoryIcons: Record<string, string> = {
     Shopping: "/icons/shopping.png",
@@ -59,260 +93,306 @@ export default function ExpensesPage() {
     Travel: "/icons/transport.png",
     Education: "/icons/books.png",
     Housing: "/icons/house.png",
-    Health:"/icons/health.png",
-    Savings:"/icons/savings.png"
-  };
-
-  // Form state
-  const [newExpense, setNewExpense] = useState({
-    title: "",
-    amount: "",
-    category: "Food",
-    date: "",
-  });
-  const [showForm, setShowForm] = useState(false);
-
-  // Calculator states
-  const [display, setDisplay] = useState<string>("0");
-  const [overwrite, setOverwrite] = useState<boolean>(true);
-
-  const buttons: Array<string> = [
-    "C","DEL","%","/","7","8","9","*","4","5","6","-","1","2","3","+","+/-","0",".","=",];
-
-  // Calculator keyboard support
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      const key = e.key;
-      if ((key >= "0" && key <= "9") || key === ".") handleInput(key);
-      if (key === "+" || key === "-" || key === "*" || key === "/") handleInput(key);
-      if (key === "Enter" || key === "=") handleInput("=");
-      if (key === "Backspace") handleInput("DEL");
-      if (key === "Escape") handleInput("C");
-    }
-    
-    if (activeTab === "calculator") {
-      window.addEventListener("keydown", handleKey);
-      return () => window.removeEventListener("keydown", handleKey);
-    }
-  }, [display, overwrite, activeTab]);
-
-  // Calculator input handler
-  function handleInput(value: string) {
-    if (value === "C") {
-      setDisplay("0");
-      setOverwrite(true);
-      return;
-    }
-
-    if (value === "DEL") {
-      setDisplay((d) => {
-        if (overwrite || d.length === 1) {
-          setOverwrite(true);
-          return "0";
-        }
-        return d.slice(0, -1);
-      });
-      return;
-    }
-
-    if (value === "+/-") {
-      setDisplay((d) => {
-        if (d.startsWith("-")) {
-          return d.slice(1);
-        } else {
-          return "-" + d;
-        }
-      });
-      return;
-    }
-
-    if (value === "=") {
-      try {
-        const result = eval(display);
-        setDisplay(result.toString());
-        setOverwrite(true);
-      } catch {
-        setDisplay("Error");
-        setOverwrite(true);
-      }
-      return;
-    }
-
-    if (["+", "-", "*", "/", "%"].includes(value)) {
-      setDisplay((d) => d + value);
-      setOverwrite(false);
-      return;
-    }
-
-    if (value === ".") {
-      if (display.includes(".")) return;
-      setDisplay((d) => (overwrite ? "0." : d + "."));
-      setOverwrite(false);
-      return;
-    }
-
-    // Numbers
-    if (overwrite) {
-      setDisplay(value);
-      setOverwrite(false);
-    } else {
-      setDisplay((d) => d + value);
-    }
+    Health: "/icons/health.png",
+    Savings: "/icons/savings.png",
   }
 
-  // Add new category
-  const handleAddCategory = () => {
-    if (newCategory.trim() !== "" && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory]);
-      setNewCategory("");
-    }
-  };
+  // ==================== CALLBACK FUNCTIONS ====================
 
-  // Load expenses from localStorage or fallback
-  useEffect(() => {
-    const stored = localStorage.getItem("expenses");
-    if (stored) {
-      setExpenses(JSON.parse(stored));
-    } else {
-      setExpenses(expensesData);
-      localStorage.setItem("expenses", JSON.stringify(expensesData));
-    }
-  }, []);
+  /**
+   * Handles calculator input with support for numbers, operators, and special operations
+   * @param value - The input value (number, operator, or operation)
+   */
+  const handleInput = useCallback(
+    (value: string): void => {
+      if (value === "C") {
+        setDisplay("0")
+        setOverwrite(true)
+        return
+      }
 
-  // Save expenses to localStorage on change
-  useEffect(() => {
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-  }, [expenses]);
+      if (value === "DEL") {
+        setDisplay((d: string) => {
+          if (overwrite || d.length === 1) {
+            setOverwrite(true)
+            return "0"
+          }
+          return d.slice(0, -1)
+        })
+        return
+      }
 
-  // Remove expense
-  const handleRemove = (id: number) => {
-    setExpenses((prev) => prev.filter((exp) => exp.id !== id));
-  };
+      if (value === "+/-") {
+        setDisplay((d: string) => {
+          if (d.startsWith("-")) {
+            return d.slice(1)
+          } else {
+            return "-" + d
+          }
+        })
+        return
+      }
 
-  // Add new expense
-  const handleAddExpense = () => {
-    if (!newExpense.title || !newExpense.amount || !newExpense.date) return;
+      if (value === "=") {
+        try {
+          const result: number = eval(display)
+          setDisplay(result.toString())
+          setOverwrite(true)
+        } catch {
+          setDisplay("Error")
+          setOverwrite(true)
+        }
+        return
+      }
 
-    const id = Date.now(); // unique ID
-    const expense = {
+      if (["+", "-", "*", "/", "%"].includes(value)) {
+        setDisplay((d: string) => d + value)
+        setOverwrite(false)
+        return
+      }
+
+      if (value === ".") {
+        if (display.includes(".")) return
+        setDisplay((d: string) => (overwrite ? "0." : d + "."))
+        setOverwrite(false)
+        return
+      }
+
+      // Handle number input
+      if (overwrite) {
+        setDisplay(value)
+        setOverwrite(false)
+      } else {
+        setDisplay((d: string) => d + value)
+      }
+    },
+    [display, overwrite],
+  )
+
+  /**
+   * Handles editing an expense by populating the form with existing values
+   * @param expense - The expense object to edit
+   */
+  const handleEdit = useCallback((expense: Expense): void => {
+    setNewExpense({
+      title: expense.title,
+      amount: expense.amount.toString(),
+      category: expense.category,
+      date: expense.date,
+    })
+    setShowForm(true)
+  }, [])
+
+  /**
+   * Adds a new expense to the list
+   */
+  const handleAddExpense = useCallback((): void => {
+    if (!newExpense.title || !newExpense.amount || !newExpense.date) return
+
+    const id: number = Date.now()
+    const expense: Expense = {
       id,
       title: newExpense.title,
-      amount: parseFloat(newExpense.amount),
+      amount: Number.parseFloat(newExpense.amount),
       category: newExpense.category,
       date: newExpense.date,
-    };
-    setExpenses((prev) => [expense, ...prev]);
-    setNewExpense({ title: "", amount: "", category: "Food", date: "" });
-    setShowForm(false);
-  };
+    }
+    setExpenses((prev: Expense[]) => [expense, ...prev])
+    setNewExpense({ title: "", amount: "", category: "Food", date: "" })
+    setShowForm(false)
+  }, [newExpense])
 
-  // Filter + Search + Sort
-  const filteredExpenses = useMemo(() => {
-    let data = [...expenses];
-    if (category !== "All")
-      data = data.filter((exp) => exp.category === category);
-    if (search)
-      data = data.filter((exp) =>
-        exp.title.toLowerCase().includes(search.toLowerCase())
-      );
-    if (sortBy === "date")
-      data.sort(
-        (a, b) =>
-          new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-    else if (sortBy === "amount") data.sort((a, b) => b.amount - a.amount);
-    return data;
-  }, [expenses, category, sortBy, search]);
+  /**
+   * Removes an expense from the list
+   * @param id - The ID of the expense to remove
+   */
+  const handleRemove = useCallback((id: number): void => {
+    setExpenses((prev: Expense[]) => prev.filter((exp: Expense) => exp.id !== id))
+  }, [])
 
-  // Summary
-  const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-  const highest = filteredExpenses.reduce(
-    (max, exp) => (exp.amount > max ? exp.amount : max),
-    0
-  );
+  /**
+   * Adds a new category to the list
+   */
+  const handleAddCategory = useCallback((): void => {
+    if (newCategory.trim() !== "" && !categories.includes(newCategory)) {
+      setCategories((prev: string[]) => [...prev, newCategory])
+      setNewCategory("")
+    }
+  }, [newCategory, categories])
 
-  // Chart Data
-  const chartData = useMemo(() => {
-    const data: { name: string; value: number }[] = [];
-    const uniqueCats = Array.from(
-      new Set(filteredExpenses.map((e) => e.category))
-    );
-    uniqueCats.forEach((cat) => {
-      const sum = filteredExpenses
-        .filter((e) => e.category === cat)
-        .reduce((acc, e) => acc + e.amount, 0);
-      data.push({ name: cat, value: sum });
-    });
-    return data;
-  }, [filteredExpenses]);
+  /**
+   * Handles mobile navigation click
+   * @param tabId - The tab ID to navigate to
+   */
+  const handleMobileNavClick = useCallback((tabId: string): void => {
+    setActiveTab(tabId)
+    setIsMobileSidebarOpen(false)
+  }, [])
 
-  // Get available months for dropdown
-  const availableMonths = useMemo(() => {
-    const months = new Set<string>();
-    expenses.forEach((exp) => {
-      const date = new Date(exp.date);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      months.add(monthKey);
-    });
-    return Array.from(months).sort().reverse(); // Most recent first
-  }, [expenses]);
+  // ==================== EFFECTS ====================
 
-  // Set default selected month
+  /**
+   * Load expenses from localStorage on component mount
+   */
+  useEffect(() => {
+    const stored: string | null = localStorage.getItem("expenses")
+    if (stored) {
+      setExpenses(JSON.parse(stored) as Expense[])
+    } else {
+      setExpenses(expensesData as Expense[])
+      localStorage.setItem("expenses", JSON.stringify(expensesData))
+    }
+  }, [])
+
+  /**
+   * Save expenses to localStorage whenever they change
+   */
+  useEffect(() => {
+    localStorage.setItem("expenses", JSON.stringify(expenses))
+  }, [expenses])
+
+  /**
+   * Keyboard support for calculator
+   */
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent): void => {
+      const key: string = e.key
+      if ((key >= "0" && key <= "9") || key === ".") handleInput(key)
+      if (key === "+" || key === "-" || key === "*" || key === "/") handleInput(key)
+      if (key === "Enter" || key === "=") handleInput("=")
+      if (key === "Backspace") handleInput("DEL")
+      if (key === "Escape") handleInput("C")
+    }
+
+    if (activeTab === "calculator") {
+      window.addEventListener("keydown", handleKey)
+      return () => window.removeEventListener("keydown", handleKey)
+    }
+  }, [display, overwrite, activeTab, handleInput])
+
+  // ==================== COMPUTED VALUES ====================
+
+  /**
+   * Get available months from expenses data
+   */
+  const availableMonths = useMemo((): string[] => {
+    const months = new Set<string>()
+    expenses.forEach((exp: Expense) => {
+      const date = new Date(exp.date)
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+      months.add(monthKey)
+    })
+    return Array.from(months).sort().reverse()
+  }, [expenses])
+
+  /**
+   * Set default selected month on component mount
+   */
   useEffect(() => {
     if (availableMonths.length > 0 && !selectedMonth) {
-      setSelectedMonth(availableMonths[0]);
+      setSelectedMonth(availableMonths[0])
     }
-  }, [availableMonths, selectedMonth]);
+  }, [availableMonths, selectedMonth])
 
-  // Daily expenses data for selected month
+  /**
+   * Calculate daily expenses for selected month
+   */
   const dailyData = useMemo(() => {
-    if (!selectedMonth) return [];
+    if (!selectedMonth) return []
 
-    const [year, month] = selectedMonth.split('-');
-    const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
-    const dailyExpenses: { [key: string]: number } = {};
+    const [year, month] = selectedMonth.split("-")
+    const daysInMonth = new Date(Number.parseInt(year), Number.parseInt(month), 0).getDate()
+    const dailyExpenses: Record<string, number> = {}
 
     // Initialize all days with 0
     for (let day = 1; day <= daysInMonth; day++) {
-      dailyExpenses[day.toString()] = 0;
+      dailyExpenses[day.toString()] = 0
     }
 
     // Calculate daily totals for selected month
     expenses
-      .filter((exp) => {
-        const expDate = new Date(exp.date);
-        const expMonthKey = `${expDate.getFullYear()}-${String(expDate.getMonth() + 1).padStart(2, '0')}`;
-        return expMonthKey === selectedMonth;
+      .filter((exp: Expense) => {
+        const expDate = new Date(exp.date)
+        const expMonthKey = `${expDate.getFullYear()}-${String(expDate.getMonth() + 1).padStart(2, "0")}`
+        return expMonthKey === selectedMonth
       })
-      .forEach((exp) => {
-        const day = new Date(exp.date).getDate().toString();
-        dailyExpenses[day] += exp.amount;
-      });
+      .forEach((exp: Expense) => {
+        const day = new Date(exp.date).getDate().toString()
+        dailyExpenses[day] += exp.amount
+      })
 
     return Object.entries(dailyExpenses)
-      .map(([day, amount]) => ({
-        day: parseInt(day),
-        amount: Math.round(amount)
+      .map(([day, amount]: [string, number]) => ({
+        day: Number.parseInt(day),
+        amount: Math.round(amount),
       }))
-      .sort((a, b) => a.day - b.day);
-  }, [expenses, selectedMonth]);
+      .sort((a, b) => a.day - b.day)
+  }, [expenses, selectedMonth])
 
-  // Sidebar navigation items
+  /**
+   * Filter, search, and sort expenses based on current filters
+   */
+  const filteredExpenses = useMemo((): Expense[] => {
+    let data: Expense[] = [...expenses]
+
+    if (category !== "All") {
+      data = data.filter((exp: Expense) => exp.category === category)
+    }
+
+    if (search) {
+      data = data.filter((exp: Expense) => exp.title.toLowerCase().includes(search.toLowerCase()))
+    }
+
+    if (sortBy === "date") {
+      data.sort((a: Expense, b: Expense) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    } else if (sortBy === "amount") {
+      data.sort((a: Expense, b: Expense) => b.amount - a.amount)
+    }
+
+    return data
+  }, [expenses, category, sortBy, search])
+
+  /**
+   * Calculate total and highest expense from filtered data
+   */
+  const total: number = filteredExpenses.reduce((sum: number, exp: Expense) => sum + exp.amount, 0)
+  const highest: number = filteredExpenses.reduce(
+    (max: number, exp: Expense) => (exp.amount > max ? exp.amount : max),
+    0,
+  )
+
+  /**
+   * Prepare chart data from filtered expenses
+   */
+  const chartData = useMemo(() => {
+    const data: Array<{ name: string; value: number }> = []
+    const uniqueCats: string[] = Array.from(new Set(filteredExpenses.map((e: Expense) => e.category)))
+
+    uniqueCats.forEach((cat: string) => {
+      const sum = filteredExpenses
+        .filter((e: Expense) => e.category === cat)
+        .reduce((acc: number, e: Expense) => acc + e.amount, 0)
+      data.push({ name: cat, value: sum })
+    })
+
+    return data
+  }, [filteredExpenses])
+
+  // ==================== SIDEBARNAVIGATION ====================
+
   const sidebarItems = [
     { id: "home", label: "Home", icon: <Home size={20} /> },
     { id: "all_expenses", label: "All Expenses", icon: <Book size={20} /> },
     { id: "graph", label: "Graph", icon: <BarChart3 size={20} /> },
     { id: "calculator", label: "Calculator", icon: <Calculator size={20} /> },
-  ];
+  ]
 
-  // Mobile sidebar close handler
-  const handleMobileNavClick = (tabId: string) => {
-    setActiveTab(tabId);
-    setIsMobileSidebarOpen(false);
-  };
+  // ==================== RENDER CONTENT ====================
 
-  // Render content based on active tab
-  const renderContent = () => {
+  /**
+   * Renders content based on active tab
+   */
+  const renderContent = (): JSX.Element => {
     switch (activeTab) {
       case "home":
         return (
@@ -324,10 +404,11 @@ export default function ExpensesPage() {
                   Coin Wish
                 </h1>
                 <p className="text-lg md:text-xl text-gray-600 dark:text-gray-500 max-w-2xl mx-auto">
-                  Transform your financial dreams into reality. Track, analyze, and optimize your expenses with intelligent insights.
+                  Transform your financial dreams into reality. Track, analyze, and optimize your expenses with
+                  intelligent insights.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button
                   onClick={() => setShowForm(true)}
@@ -346,9 +427,11 @@ export default function ExpensesPage() {
 
             {/* Quick Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-              <div className={`p-6 rounded-2xl shadow-lg border-l-4 border-purple-500 transform hover:scale-105 transition-all duration-200 ${
-                darkMode ? "bg-black" : "bg-white"
-              }`}>
+              <div
+                className={`p-6 rounded-2xl shadow-lg border-l-4 border-purple-500 transform hover:scale-105 transition-all duration-200 ${
+                  darkMode ? "bg-black" : "bg-white"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Expenses</p>
@@ -356,37 +439,55 @@ export default function ExpensesPage() {
                   </div>
                   <div className="p-3 bg-purple-100 dark:bg-purple-400/30 rounded-full">
                     <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+                      />
                     </svg>
                   </div>
                 </div>
               </div>
 
-              <div className={`p-6 rounded-2xl shadow-lg border-l-4 border-green-500 transform hover:scale-105 transition-all duration-200 ${
-                darkMode ? "bg-black" : "bg-white"
-              }`}>
+              <div
+                className={`p-6 rounded-2xl shadow-lg border-l-4 border-green-500 transform hover:scale-105 transition-all duration-200 ${
+                  darkMode ? "bg-black" : "bg-white"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">This Month</p>
                     <p className="text-2xl font-bold text-green-600">
-                      Rs. {expenses.filter(exp => {
-                        const expDate = new Date(exp.date);
-                        const now = new Date();
-                        return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear();
-                      }).reduce((sum, exp) => sum + exp.amount, 0).toLocaleString()}
+                      Rs.{" "}
+                      {expenses
+                        .filter((exp) => {
+                          const expDate = new Date(exp.date)
+                          const now = new Date()
+                          return expDate.getMonth() === now.getMonth() && expDate.getFullYear() === now.getFullYear()
+                        })
+                        .reduce((sum, exp) => sum + exp.amount, 0)
+                        .toLocaleString()}
                     </p>
                   </div>
                   <div className="p-3 bg-green-100 dark:bg-green-400/30 rounded-full">
                     <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
                     </svg>
                   </div>
                 </div>
               </div>
 
-              <div className={`p-6 rounded-2xl shadow-lg border-l-4 border-blue-500 transform hover:scale-105 transition-all duration-200 ${
-                darkMode ? "bg-black" : "bg-white"
-              }`}>
+              <div
+                className={`p-6 rounded-2xl shadow-lg border-l-4 border-blue-500 transform hover:scale-105 transition-all duration-200 ${
+                  darkMode ? "bg-black" : "bg-white"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Categories</p>
@@ -394,7 +495,12 @@ export default function ExpensesPage() {
                   </div>
                   <div className="p-3 bg-blue-100 dark:bg-blue-400/30 rounded-full">
                     <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -415,13 +521,16 @@ export default function ExpensesPage() {
                   </svg>
                 </button>
               </div>
-              
+
               {expenses.length > 0 ? (
                 <div className="space-y-3">
                   {expenses.slice(0, 5).map((exp) => (
-                    <div key={exp.id} className={`flex items-center justify-between p-4 rounded-xl border ${
-                      darkMode ? "border-gray-700 hover:border-gray-600" : "border-gray-200 hover:border-gray-300"
-                    } transition-colors cursor-pointer`}>
+                    <div
+                      key={exp.id}
+                      className={`flex items-center justify-between p-4 rounded-xl border ${
+                        darkMode ? "border-gray-700 hover:border-gray-600" : "border-gray-200 hover:border-gray-300"
+                      } transition-colors cursor-pointer`}
+                    >
                       <div className="flex items-center gap-4">
                         <div className="p-2 dark:to-blue-900/30 rounded-lg">
                           <Image
@@ -445,13 +554,20 @@ export default function ExpensesPage() {
                 </div>
               ) : (
                 <div className="text-center py-8">
-                  <div onClick={() => {
-                    setActiveTab("all_expenses");
-                    setShowForm(true);
-                  }}
-                  className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <div
+                    onClick={() => {
+                      setActiveTab("all_expenses")
+                      setShowForm(true)
+                    }}
+                    className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                  >
                     <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
                     </svg>
                   </div>
                   <h4 className="text-lg font-medium mb-2">No expenses yet</h4>
@@ -505,170 +621,504 @@ export default function ExpensesPage() {
               </div>
             </div>
           </div>
-        );
-      
-      case "graph":
-        return (
-          <div className="space-y-8">
-            <div className="text-center px-4">
-              <h2 className="text-2xl md:text-3xl font-bold mt-10+ Add Expense mb-2">Daily Expenses Overview</h2>
-              <p className="text-gray-600">Track your daily spending patterns</p>
-            </div>
+        )
 
-            {/* Month Selector */}
-            <div className="flex justify-center mb-6 px-4">
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className={`border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none font-medium w-full max-w-sm ${
-                  darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+      case "all_expenses":
+        return (
+          <>
+            {/* Add Expense Modal */}
+            {showForm && (
+              <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+                <div
+                  className={`rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95 
+                    ${darkMode ? "bg-black text-white border border-black" : "bg-white text-gray-700"}`}
+                >
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-bold">Add New Expense +</h3>
+                      <button
+                        onClick={() => setShowForm(false)}
+                        className="text-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="text-purple-100 text-sm mt-1">Track your spending easily</p>
+                  </div>
+
+                  {/* Form Content */}
+                  <div className="p-6 space-y-5">
+                    {/* Title Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Expense Title</label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Coffee, Groceries, Gas"
+                        value={newExpense.title}
+                        onChange={(e) => setNewExpense({ ...newExpense, title: e.target.value })}
+                        className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none placeholder-gray-400"
+                      />
+                    </div>
+
+                    {/* Amount Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Amount</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">
+                          Rs
+                        </span>
+                        <input
+                          type="number"
+                          placeholder="0.00"
+                          value={newExpense.amount}
+                          onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
+                          className="w-full pl-8 pr-3 py-3 border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 rounded-xl transition-colors outline-none placeholder-gray-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Category Section */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Category</label>
+
+                      {/* Category Dropdown */}
+                      <div className="relative">
+                        {/* Selected Value */}
+                        <button
+                          onClick={() => {
+                            const dropdown = document.getElementById("categoryDropdown")
+                            if (dropdown) {
+                              dropdown.classList.toggle("hidden")
+                            }
+                          }}
+                          className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white/5 text-gray-500 flex justify-between items-center"
+                        >
+                          <span>{newExpense.category || "Select category"}</span>
+                          <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                            />
+                          </svg>
+                        </button>
+
+                        {/* Options */}
+                        <div
+                          id="categoryDropdown"
+                          className="hidden absolute mt-2 w-full max-h-60 overflow-y-auto border-2 border-purple-900 bg-white/5 backdrop-blur-lg rounded-xl shadow-lg z-10"
+                        >
+                          {categories.map((cat: string, index: number) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                setNewExpense({ ...newExpense, category: cat })
+                                const dropdown = document.getElementById("categoryDropdown")
+                                if (dropdown) {
+                                  dropdown.classList.add("hidden")
+                                }
+                              }}
+                              className="w-full text-left px-4 py-2 text-gray-500 hover:bg-purple-700/40 transition-colors flex justify-between items-center"
+                            >
+                              <span>{cat}</span>
+                              {newExpense.category === cat && (
+                                <svg className="h-4 w-4 text-purple-900" fill="currentColor" viewBox="0 0 20 20">
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Add New Category */}
+                      <div className="flex items-center gap-2 mt-3">
+                        <input
+                          type="text"
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          placeholder="Create new category"
+                          className="flex-1 border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-2.5 rounded-lg transition-colors outline-none placeholder-gray-400 text-sm"
+                        />
+                        <button
+                          onClick={handleAddCategory}
+                          className="bg-gradient-to-r from-purple-900 to-purple-900 hover:from-purple-600 hover:to-purple-900 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 text-sm"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Date Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-500">Date</label>
+
+                      <div className="relative">
+                        <input
+                          id="dateInput"
+                          type="date"
+                          value={newExpense.date}
+                          onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
+                          className="w-full border-2 border-gray-300 p-3 rounded-xl outline-none pr-10"
+                        />
+
+                        <button
+                          type="button"
+                          aria-label="Open date picker"
+                          onClick={() => {
+                            const input = document.getElementById("dateInput") as HTMLInputElement | null
+                            if (!input) return
+
+                            // Preferred (Chromium): showPicker()
+                            if (typeof (input as any).showPicker === "function") {
+                              ;(input as any).showPicker()
+                              return
+                            }
+
+                            // Fallback: focus + click
+                            input.focus()
+                            try {
+                              input.click()
+                            } catch {}
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 z-10"
+                        >
+                          <CalendarIcon className={`${darkMode ? "text-white" : "text-black"} w-5 h-5`} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Actions */}
+                  <div className="p-4 pt-0 flex gap-2">
+                    <button
+                      onClick={() => setShowForm(false)}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-red-500 to-red-800 hover:from-red-800 hover:to-red-500 text-white rounded-lg font-medium transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleAddExpense}
+                      className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-md text-sm"
+                    >
+                      Add Expense
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Summary Section */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 px-4 mt-7">
+              <div
+                className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
+                  darkMode ? "bg-black text-white border-blue-300" : "bg-blue-100 text-black border-transparent"
                 }`}
               >
-                {availableMonths.map((month) => {
-                  const [year, monthNum] = month.split('-');
-                  const monthName = new Date(parseInt(year), parseInt(monthNum) - 1).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long' 
-                  });
-                  return (
-                    <option key={month} value={month}>
-                      {monthName}
+                <h2 className="text-base md:text-lg font-semibold">Total Expenses</h2>
+                <p className="text-xl md:text-2xl font-bold">Rs. {total}</p>
+              </div>
+
+              <div
+                className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
+                  darkMode ? "bg-black text-white border-green-300" : "bg-green-100 text-black border-transparent"
+                }`}
+              >
+                <h2 className="text-base md:text-lg font-semibold">Highest Expense</h2>
+                <p className="text-xl md:text-2xl font-bold">Rs.{highest}</p>
+              </div>
+
+              <div
+                className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
+                  darkMode ? "bg-black text-white border-purple-300" : "bg-purple-100 text-black border-transparent"
+                }`}
+              >
+                <h2 className="text-base md:text-lg font-semibold">Expense Count</h2>
+                <p className="text-xl md:text-2xl font-bold">{filteredExpenses.length}</p>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="flex flex-col gap-4 items-stretch mb-6 px-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className={`border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium shadow-sm ${
+                    darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+                  }`}
+                >
+                  <option value="All">All Categories</option>
+                  {categories.map((cat: string, index: number) => (
+                    <option key={index} value={cat}>
+                      {cat}
                     </option>
-                  );
-                })}
-              </select>
-            </div>
+                  ))}
+                </select>
 
-            {/* Daily Line Chart */}
-            <div className={`mx-4 p-4 md:p-6 rounded-2xl shadow border-1 ${
-              darkMode ? "bg-black text-white" : "bg-white" 
-            }`}>
-              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-center">
-                Daily Expenses for {selectedMonth ? (() => {
-                  const [year, month] = selectedMonth.split('-');
-                  return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-                })() : 'Selected Month'}
-              </h3>
-              {dailyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={dailyData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
-                    <XAxis 
-                      dataKey="day" 
-                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={10}
-                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10, fontSize: 10 }}
-                    />
-                    <YAxis 
-                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={10}
-                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft', fontSize: 10 }}
-                    />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: darkMode ? "#1f2937" : "#ffffff",
-                        border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
-                        borderRadius: "8px",
-                        color: darkMode ? "#ffffff" : "#000000",
-                        fontSize: "12px"
-                      }}
-                      formatter={(value) => [`Rs. ${value}`, "Amount"]}
-                      labelFormatter={(label) => `Day ${label}`}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="amount" 
-                      stroke="#8b5cf6" 
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className={`border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium shadow-sm ${
+                    darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+                  }`}
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="amount">Sort by Amount</option>
+                </select>
+
+                <div className="relative sm:col-span-2 lg:col-span-1">
+                  <input
+                    type="text"
+                    placeholder="Search by title..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className={`w-full border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 pl-10 rounded-xl transition-all duration-200 outline-none placeholder-gray-400 font-medium shadow-sm ${
+                      darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
+                    }`}
+                  />
+                  <svg
+                    className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                       strokeWidth={2}
-                      dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 3 }}
-                      activeDot={{ r: 5, stroke: "#8b5cf6", strokeWidth: 2 }}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                     />
-                  </LineChart>
-                </ResponsiveContainer>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Expenses Grid - Mobile Responsive Table */}
+            <div className="mx-4 mb-8">
+              {filteredExpenses.length > 0 ? (
+                <>
+                  {/* Desktop Table */}
+                  <div className="hidden lg:block overflow-x-auto rounded-2xl shadow-md border border-gray-200">
+                    <table className="w-full text-left border-collapse">
+                      <thead className={`${darkMode ? "bg-gray-800/30" : "bg-gray-100"}`}>
+                        <tr>
+                          <th className="px-6 py-3 text-sm font-semibold">Icon</th>
+                          <th className="px-6 py-3 text-sm font-semibold">Title</th>
+                          <th className="px-6 py-3 text-sm font-semibold">Category</th>
+                          <th className="px-6 py-3 text-sm font-semibold">Amount</th>
+                          <th className="px-6 py-3 text-sm font-semibold">Date</th>
+                          <th className="px-6 py-3 text-sm font-semibold">Price</th>
+                          <th className="px-6 py-3"></th>
+                        </tr>
+                      </thead>
+                      <tbody className={darkMode ? "bg-black" : "bg-white"}>
+                        {filteredExpenses.map((exp: Expense) => (
+                          <tr
+                            key={exp.id}
+                            className={`border-b transition ${darkMode ? "border-gray-700 hover:bg-gray-900/30" : "border-gray-200 hover:bg-gray-50"}`}
+                          >
+                            <td className="px-6 py-4">
+                              <Image
+                                src={categoryIcons[exp.category] || "/default.png"}
+                                alt={exp.category}
+                                width={24}
+                                height={24}
+                                className="rounded"
+                              />
+                            </td>
+                            <td className="px-6 py-4 font-medium">{exp.title}</td>
+                            <td className="px-6 py-4">{exp.category}</td>
+                            <td className="px-6 py-4 font-semibold">Rs.{exp.amount}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{new Date(exp.date).toDateString()}</td>
+                            <td className="px-6 py-4">Rs.{exp.price || exp.amount}</td>
+                            <td className="px-6 py-4">
+                              <button
+                                onClick={() => handleEdit(exp)}
+                                className="text-blue-500 hover:text-blue-700 mr-3"
+                                title="Edit"
+                              >
+                                <Pencil size={18} />
+                              </button>
+
+                              <button
+                                onClick={() => handleRemove(exp.id)}
+                                className="text-red-500 hover:text-red-700"
+                                title="Remove"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card Layout */}
+                  <div className="lg:hidden space-y-4">
+                    {filteredExpenses.map((exp: Expense) => (
+                      <div
+                        key={exp.id}
+                        className={`p-4 rounded-xl shadow-md border transition-colors ${
+                          darkMode ? "bg-black border-gray-600" : "bg-white border-gray-200"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <Image
+                              src={categoryIcons[exp.category] || "/default.png"}
+                              alt={exp.category}
+                              width={32}
+                              height={32}
+                              className="rounded"
+                            />
+                            <div>
+                              <h3 className="font-semibold text-lg">{exp.title}</h3>
+                              <p className="text-sm text-gray-500">{exp.category}</p>
+                            </div>
+                          </div>
+                          <div>
+                            <button
+                              onClick={() => handleEdit(exp)}
+                              className="text-blue-500 hover:text-blue-700 mr-3"
+                              title="Edit"
+                            >
+                              <Pencil size={18} />
+                            </button>
+
+                            <button
+                              onClick={() => handleRemove(exp.id)}
+                              className="text-red-500 hover:text-red-700"
+                              title="Remove"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-xl font-bold text-green-600">Rs. {exp.amount}</p>
+                            <p className="text-xs text-gray-500">{new Date(exp.date).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : (
-                <p className="text-center text-gray-500 py-20">No data available for this month.</p>
+                <div
+                  className={`text-center py-12 rounded-2xl shadow-md border ${
+                    darkMode ? "bg-black border-gray-600" : "bg-white border-gray-200"
+                  }`}
+                >
+                  <p className="text-gray-500 text-2xl">No expenses found.</p>
+                  <div
+                    onClick={() => setShowForm(true)}
+                    className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto flex items-center justify-center mt-7"
+                  >
+                    <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                  </div>
+                  <button className="mt-1 bg-gradient-to-r text-gray-500 font-medium py-2 px-4 rounded-lg transition-all duration-200">
+                    Add Your First Expense
+                  </button>
+                </div>
               )}
             </div>
 
-            {/* Daily Bar Chart Alternative */}
-            <div className={`mx-4 p-4 md:p-6 rounded-2xl shadow border-1 ${
-              darkMode ? "bg-black text-white" : "bg-white" 
-            }`}>
-              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-center">
-                Daily Expenses Bar Chart
-              </h3>
-              {dailyData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={dailyData} margin={{ top: 20, right: 10, left: 10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#374151" : "#e5e7eb"} />
-                    <XAxis 
-                      dataKey="day" 
-                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={10}
-                      label={{ value: 'Day of Month', position: 'insideBottom', offset: -10, fontSize: 10 }}
-                    />
-                    <YAxis 
-                      stroke={darkMode ? "#9ca3af" : "#6b7280"}
-                      fontSize={10}
-                      label={{ value: 'Amount (Rs)', angle: -90, position: 'insideLeft', fontSize: 10 }}
-                    />
-                    <Tooltip 
+            {/* Category Breakdown Chart */}
+            <div
+              className={`mx-4 p-4 md:p-6 rounded-2xl shadow border-1 ${darkMode ? "bg-black text-white" : "bg-white"}`}
+            >
+              <h3 className="text-xl md:text-2xl font-semibold mb-4 text-center">Category Breakdown</h3>
+              {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie data={chartData} dataKey="value" nameKey="name" outerRadius={80} fill="#8884d8" label>
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
                       contentStyle={{
                         backgroundColor: darkMode ? "#1f2937" : "#ffffff",
                         border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
                         borderRadius: "8px",
-                        color: darkMode ? "#ffffff" : "#000000",
-                        fontSize: "12px"
+                        fontSize: "12px",
                       }}
-                      formatter={(value) => [`Rs. ${value}`, "Amount"]}
-                      labelFormatter={(label) => `Day ${label}`}
                     />
-                    <Bar 
-                      dataKey="amount" 
-                      fill="#10b981"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
+                    <Legend verticalAlign="bottom" height={36} />
+                  </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <p className="text-center text-gray-500 py-20">No data available for this month.</p>
+                <p className="text-center text-gray-500 py-12">No data to display.</p>
               )}
             </div>
+          </>
+        )
 
-            {/* Daily Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mx-4">
-              <div className={`p-4 md:p-6 rounded-2xl shadow text-center ${
-                darkMode ? "bg-black text-white border border-blue-300" : "bg-blue-100"
-              }`}>
-                <h4 className="text-base md:text-lg font-semibold mb-2">Avg Daily</h4>
-                <p className="text-lg md:text-2xl font-bold">
-                  Rs. {dailyData.length > 0 ? Math.round(dailyData.reduce((sum, item) => sum + item.amount, 0) / dailyData.filter(item => item.amount > 0).length || 0) : 0}
-                </p>
+      case "graph":
+        return (
+          <div className={`p-6 rounded-2xl shadow-lg ${darkMode ? "bg-black" : "bg-white"}`}>
+            <h2 className="text-2xl font-bold mb-6">Monthly Expense Trends</h2>
+
+            {availableMonths.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium mb-2">Select Month</label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className={`border-2 p-3 rounded-xl w-full max-w-xs outline-none ${
+                    darkMode ? "bg-black text-white border-gray-600" : "bg-white text-black border-gray-300"
+                  }`}
+                >
+                  {availableMonths.map((month: string) => (
+                    <option key={month} value={month}>
+                      {new Date(`${month}-01`).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+                    </option>
+                  ))}
+                </select>
               </div>
-              
-              <div className={`p-4 md:p-6 rounded-2xl shadow text-center ${
-                darkMode ? "bg-black text-white border border-green-300" : "bg-green-100"
-              }`}>
-                <h4 className="text-base md:text-lg font-semibold mb-2">Highest Day</h4>
-                <p className="text-lg md:text-2xl font-bold">
-                  Rs. {dailyData.length > 0 ? Math.max(...dailyData.map(item => item.amount)) : 0}
-                </p>
-              </div>
-              
-              <div className={`p-4 md:p-6 rounded-2xl shadow text-center ${
-                darkMode ? "bg-black text-white border border-purple-300" : "bg-purple-100"
-              }`}>
-                <h4 className="text-base md:text-lg font-semibold mb-2">Days with Expenses</h4>
-                <p className="text-lg md:text-2xl font-bold">{dailyData.filter(item => item.amount > 0).length}</p>
-              </div>
-            </div>
+            )}
+
+            {dailyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={dailyData}>
+                  <CartesianGrid stroke={darkMode ? "#374151" : "#e5e7eb"} />
+                  <XAxis dataKey="day" stroke={darkMode ? "#9ca3af" : "#6b7280"} />
+                  <YAxis stroke={darkMode ? "#9ca3af" : "#6b7280"} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: darkMode ? "#1f2937" : "#ffffff",
+                      border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Line type="monotone" dataKey="amount" stroke="#8b5cf6" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-gray-500 py-12">No data available for the selected month.</p>
+            )}
           </div>
-        );
+        )
 
       case "calculator":
         return (
           <div className="relative min-h-screen overflow-hidden p-4">
-            
             {/* Animated Geometric Shapes */}
             <div className="absolute inset-0 overflow-hidden">
               {/* Squares */}
@@ -676,17 +1126,17 @@ export default function ExpensesPage() {
               <div className="absolute top-60 right-32 w-12 h-12 bg-purple-200/30 dark:bg-purple-500/15 rotate-45 animate-float-delayed"></div>
               <div className="absolute bottom-40 left-16 w-20 h-20 bg-indigo-200/25 dark:bg-indigo-500/10 rotate-12 animate-spin-slow"></div>
               <div className="absolute bottom-20 right-20 w-8 h-8 bg-cyan-200/40 dark:bg-cyan-500/20 rotate-45 animate-float-slow"></div>
-              
+
               {/* Circles */}
               <div className="absolute top-32 right-16 w-24 h-24 bg-blue-300/15 dark:bg-blue-400/10 rounded-full animate-pulse-gentle"></div>
               <div className="absolute top-80 left-40 w-32 h-32 bg-purple-300/10 dark:bg-purple-400/8 rounded-full animate-float-delayed"></div>
               <div className="absolute bottom-60 right-40 w-16 h-16 bg-indigo-300/20 dark:bg-indigo-400/12 rounded-full animate-bounce-gentle"></div>
               <div className="absolute bottom-80 left-60 w-12 h-12 bg-cyan-300/25 dark:bg-cyan-400/15 rounded-full animate-pulse-gentle"></div>
-              
-              {/* Triangles (using CSS borders) */}
+
+              {/* Triangles */}
               <div className="absolute top-40 left-60 w-0 h-0 border-l-8 border-r-8 border-b-16 border-transparent border-b-blue-200/20 dark:border-b-blue-500/10 animate-float-slow"></div>
               <div className="absolute bottom-32 right-60 w-0 h-0 border-l-6 border-r-6 border-b-12 border-transparent border-b-purple-200/30 dark:border-b-purple-500/15 animate-spin-slow"></div>
-              
+
               {/* Diamonds */}
               <div className="absolute top-72 right-80 w-10 h-10 bg-indigo-200/20 dark:bg-indigo-500/12 transform rotate-45 animate-float-delayed"></div>
               <div className="absolute bottom-72 left-80 w-14 h-14 bg-cyan-200/15 dark:bg-cyan-500/10 transform rotate-45 animate-bounce-gentle"></div>
@@ -694,56 +1144,55 @@ export default function ExpensesPage() {
 
             {/* Calculator Container */}
             <div className="w-full max-w-sm mx-auto p-2">
-            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-2 md:p-6 relative overflow-hidden">
-              
-              {/* Title */}
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base md:text-lg font-semibold text-white flex items-center gap-2">
-                  <span className="text-indigo-400">🧮</span> Smart Calculator
-                </h2>
-                <span className="text-xs text-gray-400">v1.0</span>
-              </div>
+              <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl shadow-2xl p-2 md:p-6 relative overflow-hidden">
+                {/* Title */}
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-base md:text-lg font-semibold text-white flex items-center gap-2">
+                    <span className="text-indigo-400">🧮</span> Smart Calculator
+                  </h2>
+                  <span className="text-xs text-gray-400">v1.0</span>
+                </div>
 
-              {/* Display */}
-              <div className="bg-black/70 backdrop-blur-lg text-right text-white text-2xl md:text-4xl font-mono rounded-xl p-4 md:p-5 min-h-[60px] md:min-h-[72px] flex items-center justify-end shadow-inner border border-white/10">
-                <span className="break-words tracking-wide">{display || "0"}</span>
-              </div>
+                {/* Display */}
+                <div className="bg-black/70 backdrop-blur-lg text-right text-white text-2xl md:text-4xl font-mono rounded-xl p-4 md:p-5 min-h-[60px] md:min-h-[72px] flex items-center justify-end shadow-inner border border-white/10">
+                  <span className="break-words tracking-wide">{display || "0"}</span>
+                </div>
 
-              {/* Buttons */}
-              <div className="grid grid-cols-4 gap-2 md:gap-3 mt-4 md:mt-6">
-                {buttons.map((b) => {
-                  const isOperator = ["+", "-", "*", "/"].includes(b);
-                  const isEqual = b === "=";
-                  const isClear = b === "C";
-                  return (
-                    <button
-                      key={b}
-                      onClick={() => handleInput(b)}
-                      className={`py-3 md:py-4 rounded-xl text-base md:text-xl font-semibold transition-all transform hover:scale-105 shadow-md
-                        ${
-                          isEqual
-                            ? "col-span-2 bg-indigo-500 text-white hover:bg-indigo-600"
-                            : isClear
-                            ? "bg-red-500 text-white hover:bg-red-600"
-                            : isOperator
-                            ? "bg-gray-700 text-indigo-300 hover:bg-gray-600"
-                            : "bg-gray-800 text-gray-100 hover:bg-gray-700"
-                        }`}
-                    >
-                      {b}
-                    </button>
-                  );
-                })}
-              </div>
+                {/* Buttons */}
+                <div className="grid grid-cols-4 gap-2 md:gap-3 mt-4 md:mt-6">
+                  {buttons.map((b: string) => {
+                    const isOperator = ["+", "-", "*", "/"].includes(b)
+                    const isEqual = b === "="
+                    const isClear = b === "C"
+                    return (
+                      <button
+                        key={b}
+                        onClick={() => handleInput(b)}
+                        className={`py-3 md:py-4 rounded-xl text-base md:text-xl font-semibold transition-all transform hover:scale-105 shadow-md
+                          ${
+                            isEqual
+                              ? "col-span-2 bg-indigo-500 text-white hover:bg-indigo-600"
+                              : isClear
+                                ? "bg-red-500 text-white hover:bg-red-600"
+                                : isOperator
+                                  ? "bg-gray-700 text-indigo-300 hover:bg-gray-600"
+                                  : "bg-gray-800 text-gray-100 hover:bg-gray-700"
+                          }`}
+                      >
+                        {b}
+                      </button>
+                    )
+                  })}
+                </div>
 
-              {/* Tip */}
-              <div className="mt-4 md:mt-5 text-[10px] md:text-[11px] text-gray-500 text-center">
-                💡 Use keyboard: numbers, + - * /, Enter (=), Backspace (DEL), Esc (AC)
+                {/* Tip */}
+                <div className="mt-4 md:mt-5 text-[10px] md:text-[11px] text-gray-500 text-center">
+                  💡 Use keyboard: numbers, + - * /, Enter (=), Backspace (DEL), Esc (AC)
+                </div>
               </div>
             </div>
-          </div>
 
-            {/* Simple CSS Animations */}
+            {/* CSS Animations */}
             <style jsx>{`
               @keyframes float-slow {
                 0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -773,595 +1222,158 @@ export default function ExpensesPage() {
               .animate-bounce-gentle { animation: bounce-gentle 3s ease-in-out infinite; }
             `}</style>
           </div>
-        );
+        )
 
-      case "all_expenses":
       default:
-        return (
-          <>
-      {/* Add Expense Modal */}
-        {showForm && (
-        <div className="fixed inset-0 bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
-          <div
-            className={`rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-100 animate-in zoom-in-95 
-              ${darkMode ? "bg-black text-white border border-black" : "bg-white text-gray-700"}`}
+        return <div />
+    }
+  }
+
+  return (
+    <div
+      className={`flex h-screen transition-colors duration-300 ${
+        darkMode ? "bg-black text-white" : "bg-gray-50 text-black"
+      }`}
+    >
+      {/* Mobile Header */}
+      <div
+        className={`lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 shadow-lg ${
+          darkMode ? "bg-black border-b border-gray-700" : "bg-white border-b border-gray-200"
+        }`}
+      >
+        <h1 className="text-xl font-bold">Expenses Tracker</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
           >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-purple-900 to-blue-900 text-white p-6 rounded-t-3xl">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">Add New Expense +</h3>
-                <button 
-                  onClick={() => setShowForm(false)}
-                  className="text-white hover:bg-opacity-20 w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                >
-                  ✕
-                </button>
-              </div>
-              <p className="text-purple-100 text-sm mt-1">Track your spending easily</p>
-            </div>
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <button onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)} className="p-2">
+            <Menu size={24} />
+          </button>
+        </div>
+      </div>
 
-            {/* Form Content */}
-            <div className="p-6 space-y-5">
-              {/* Title Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-500">Expense Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g., Coffee, Groceries, Gas"
-                  value={newExpense.title}
-                  onChange={(e) =>
-                    setNewExpense({ ...newExpense, title: e.target.value })
-                  }
-                  className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none placeholder-gray-400"
-                />
-              </div>
-
-              {/* Amount Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-500">Amount</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">Rs</span>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={newExpense.amount}
-                    onChange={(e) =>
-                      setNewExpense({ ...newExpense, amount: e.target.value })
-                    }
-                    className="w-full pl-8 pr-3 py-3 border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 rounded-xl transition-colors outline-none placeholder-gray-400"
-                  />
-                </div>
-              </div>
-
-              {/* Category Section */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-500">Category</label>
-
-                {/* Category Dropdown */}
-                <Listbox
-                  value={newExpense.category}
-                  onChange={(val) => setNewExpense({ ...newExpense, category: val })}
-                >
-                  <div className="relative">
-                    {/* Selected Value */}
-                    <Listbox.Button className="w-full border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-3 rounded-xl transition-colors outline-none bg-white/5 text-gray-500 flex justify-between items-center">
-                      <span>{newExpense.category || "Select category"}</span>
-                      <ChevronUpDownIcon className="h-5 w-5 text-gray-400" />
-                    </Listbox.Button>
-
-                    {/* Options */}
-                    <Listbox.Options className="absolute mt-2 w-full max-h-60 overflow-y-auto border-2 border-purple-900 bg-white/5 backdrop-blur-lg rounded-xl shadow-lg z-10">
-                      {categories.map((cat, index) => (
-                        <Listbox.Option
-                          key={index}
-                          value={cat}
-                          className={({ active }) =>
-                            `cursor-pointer px-4 py-2 text-gray-500 ${
-                              active ? "bg-purple-700/40" : ""
-                            }`
-                          }
-                        >
-                          {({ selected }) => (
-                            <div className="flex justify-between items-center">
-                              <span>{cat}</span>
-                              {selected && <CheckIcon className="h-4 w-4 text-purple-900" />}
-                            </div>
-                          )}
-                        </Listbox.Option>
-                      ))}
-                    </Listbox.Options>
-                  </div>
-                </Listbox>
-                {/* Add New Category */}
-                <div className="flex items-center gap-2 mt-3">
-                  <input
-                    type="text"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder="Create new category"
-                    className="flex-1 border-2 border-gray-200 focus:border-purple-900 focus:ring-2 focus:ring-purple-200 p-2.5 rounded-lg transition-colors outline-none placeholder-gray-400 text-sm"
-                  />
-                  <button
-                    onClick={handleAddCategory}
-                    className="bg-gradient-to-r from-purple-900 to-purple-900 hover:from-purple-600 hover:to-purple-900 text-white px-4 py-2.5 rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:scale-105 text-sm"
-                  >
-                    Add
-                  </button>
-                </div>
-              </div>
-
-              {/* Date Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-500">Date</label>
-
-                <div className="relative">
-                  <input
-                    id="dateInput"
-                    type="date"
-                    value={newExpense.date}
-                    onChange={(e) => setNewExpense({ ...newExpense, date: e.target.value })}
-                    className="w-full border-2 border-gray-300 p-3 rounded-xl outline-none pr-10"
-                  />
-
-                  <button
-                    type="button"
-                    aria-label="Open date picker"
-                    onClick={() => {
-                      const input = document.getElementById("dateInput") as HTMLInputElement | null;
-                      if (!input) return;
-
-                      // Preferred (Chromium): showPicker()
-                      if (typeof (input as any).showPicker === "function") {
-                        (input as any).showPicker();
-                        return;
-                      }
-
-                      // Fallback: focus + click (may not open native picker in all browsers)
-                      input.focus();
-                      try {
-                        input.click();
-                      } catch {}
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10"
-                  >
-                    <CalendarIcon className={`${darkMode ? "text-white" : "text-black"} w-5 h-5`} />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="p-4 pt-0 flex gap-2">
-              <button
-                onClick={() => setShowForm(false)}
-                className="flex-1 px-3 py-2 bg-gradient-to-r from-red-500 to-red-800 bg hover:from-red-800 hover:to-red-500 text-white rounded-lg font-medium hover:bg-green hover:border-red transition-colors text-sm"
-              >
-                Cancel
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileSidebarOpen(false)}></div>
+          <div className={`absolute left-0 top-0 bottom-0 w-64 shadow-lg ${darkMode ? "bg-black" : "bg-white"}`}>
+            <div className="flex items-center justify-between p-6">
+              <h1 className="text-xl font-bold">Expenses Tracker</h1>
+              <button onClick={() => setIsMobileSidebarOpen(false)} className="p-1">
+                <Menu size={20} />
               </button>
+            </div>
+
+            <nav className="mt-6 flex flex-col gap-1 flex-1">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleMobileNavClick(item.id)}
+                  className={`w-full flex items-center p-4 transition-colors duration-200 ${
+                    activeTab === item.id
+                      ? darkMode
+                        ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
+                        : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
+                      : darkMode
+                        ? "text-gray-300 hover:bg-gray-700/40"
+                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span className="ml-3 font-medium">{item.label}</span>
+                </button>
+              ))}
+            </nav>
+
+            <div className="mt-auto p-4">
               <button
-                onClick={handleAddExpense}
-                className="flex-1 px-3 py-2 bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-md text-sm"
+                onClick={() => {
+                  setActiveTab("all_expenses")
+                  setShowForm(true)
+                }}
+                className="w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
               >
-                Add Expense
+                + Add Expense
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Summary Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 px-4 mt-7">
+      {/* Desktop Sidebar */}
       <div
-        className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
-          darkMode ? "bg-black text-white border-blue-300" : "bg-blue-100 text-black border-transparent"
-        }`}
+        className={`hidden lg:flex shadow-lg flex-col transition-all duration-300 ${
+          darkMode ? "bg-black text-white" : "bg-white text-black"
+        } ${isMinimized ? "w-20" : "w-64"}`}
       >
-        <h2 className="text-base md:text-lg font-semibold">Total Expenses</h2>
-        <p className="text-xl md:text-2xl font-bold">Rs. {total}</p>
-      </div>
-
-      <div
-        className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
-          darkMode ? "bg-black text-white border-green-300" : "bg-green-100 text-black border-transparent"
-        }`}
-      >
-        <h2 className="text-base md:text-lg font-semibold">Highest Expense</h2>
-        <p className="text-xl md:text-2xl font-bold">Rs.{highest}</p>
-      </div>
-
-      <div
-        className={`p-4 md:p-6 rounded-2xl shadow text-center transition-colors duration-300 border-2 ${
-          darkMode ? "bg-black text-white border-purple-300" : "bg-purple-100 text-black border-transparent"
-        }`}
-      >
-        <h2 className="text-base md:text-lg font-semibold">Expense Count</h2>
-        <p className="text-xl md:text-2xl font-bold">{filteredExpenses.length}</p>
-      </div>
-      </div>
-
-      {/* Controls */}
-      <div className="flex flex-col gap-4 items-stretch mb-6 px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={`border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium shadow-sm ${
-              darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
-            }`}
-          >
-            <option value="All">All Categories</option>
-            {categories.map((cat, index) => (
-              <option key={index} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className={`border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 rounded-xl transition-all duration-200 outline-none cursor-pointer font-medium shadow-sm ${
-              darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
-            }`}
-          >
-            <option value="date">Sort by Date</option>
-            <option value="amount">Sort by Amount</option>
-          </select>
-
-          <div className="relative sm:col-span-2 lg:col-span-1">
-            <input
-              type="text"
-              placeholder="Search by title..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className={`w-full border-2 border-gray-200 hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-purple-100 p-3 pl-10 rounded-xl transition-all duration-200 outline-none placeholder-gray-400 font-medium shadow-sm ${
-                darkMode ? "bg-black text-white border-gray-600" : "bg-white text-gray-700"
-              }`}
-            />
-            <svg className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        <div className="flex items-center justify-between pt-6 pb-6 pl-2">
+          {!isMinimized && <h1 className="text-xl font-bold">Expenses Tracker</h1>}
+          <div className="flex gap-1">
+            {/* Dark Mode Toggle */}
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-300/30 transition"
+            >
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button onClick={() => setIsMinimized(!isMinimized)}>
+              <Menu size={24} />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Expenses Grid - Mobile Responsive Table */}
-      <div className="mx-4 mb-8">
-        {filteredExpenses.length > 0 ? (
-          <>
-            {/* Desktop Table */}
-            <div className="hidden lg:block overflow-x-auto rounded-2xl shadow-md border border-gray-200">
-              <table className="w-full text-left border-collapse">
-                <thead className={`${darkMode ? "bg-gray-800/30" : "bg-gray-100"}`}>
-                  <tr>
-                    <th className="px-6 py-3 text-sm font-semibold">Icon</th>
-                    <th className="px-6 py-3 text-sm font-semibold">Title</th>
-                    <th className="px-6 py-3 text-sm font-semibold">Category</th>
-                    <th className="px-6 py-3 text-sm font-semibold">Amount</th>
-                    <th className="px-6 py-3 text-sm font-semibold">Date</th>
-                    <th className="px-6 py-3 text-sm font-semibold">Price</th>
-                    <th className="px-6 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className={darkMode ? "bg-black" : "bg-white"}>
-                  {filteredExpenses.map((exp: any) => (
-                    <tr key={exp.id} className={`border-b transition ${darkMode ? "border-gray-700 hover:bg-gray-900/30" : "border-gray-200 hover:bg-gray-50"}`}>
-                      <td className="px-6 py-4">
-                        <Image
-                          src={categoryIcons[exp.category] || "/default.png"}
-                          alt={exp.category}
-                          width={24}
-                          height={24}
-                          className="rounded"
-                        />
-                      </td>
-                      <td className="px-6 py-4 font-medium">{exp.title}</td>
-                      <td className="px-6 py-4">{exp.category}</td>
-                      <td className="px-6 py-4 font-semibold">Rs.{exp.amount}</td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {new Date(exp.date).toDateString()}
-                      </td>
-                      <td className="px-6 py-4">Rs.{exp.price || exp.amount}</td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleEdit(exp)}
-                          className="text-blue-500 hover:text-blue-700 mr-3"
-                          title="Edit"
-                        >
-                          <Pencil size={18} />
-                        </button>
-
-                        <button
-                          onClick={() => handleRemove(exp.id)}
-                          className="text-red-500 hover:text-red-700"
-                          title="Remove"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile Card Layout */}
-            <div className="lg:hidden space-y-4">
-              {filteredExpenses.map((exp: any) => (
-                <div key={exp.id} className={`p-4 rounded-xl shadow-md border transition-colors ${
-                  darkMode ? "bg-black border-gray-600" : "bg-white border-gray-200"
-                }`}>
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src={categoryIcons[exp.category] || "/default.png"}
-                        alt={exp.category}
-                        width={32}
-                        height={32}
-                        className="rounded"
-                      />
-                      <div>
-                        <h3 className="font-semibold text-lg">{exp.title}</h3>
-                        <p className="text-sm text-gray-500">{exp.category}</p>
-                      </div>
-                    </div>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleEdit(exp)}
-                          className="text-blue-500 hover:text-blue-700 mr-3"
-                          title="Edit"
-                        >
-                          <Pencil size={18} />
-                        </button>
-
-                        <button
-                          onClick={() => handleRemove(exp.id)}
-                          className="text-red-500 hover:text-red-700"
-                          title="Remove"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                        </td>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-xl font-bold text-green-600">Rs. {exp.amount}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(exp.date).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className={`text-center py-12 rounded-2xl shadow-md border ${
-            darkMode ? "bg-black border-gray-600" : "bg-white border-gray-200"
-          }`}>
-            <p className="text-gray-500 text-2xl">No expenses found.</p>
-            <div onClick={() => setShowForm(true)} className="p-4 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto flex items-center justify-center mt-7">
-                    <svg className="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
+        {/* Desktop Sidebar Nav Items */}
+        <nav className="mt-6 flex flex-col gap-1 flex-1">
+          {sidebarItems.map((item) => (
             <button
-              className="mt-1 bg-gradient-to-r text-gray-500 font-medium py-2 px-4 rounded-lg transition-all duration-200"
-            >
-              Add Your First Expense
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Category Breakdown Chart */}
-      <div className={`mx-4 p-4 md:p-6 rounded-2xl shadow border-1 ${
-        darkMode ? "bg-black text-white" : "bg-white" 
-      }`}>
-        <h3 className="text-xl md:text-2xl font-semibold mb-4 text-center">
-          Category Breakdown
-        </h3>
-        {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={80}
-                fill="#8884d8"
-                label
-              >
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip 
-                contentStyle={{
-                  backgroundColor: darkMode ? "#1f2937" : "#ffffff",
-                  border: `1px solid ${darkMode ? "#374151" : "#e5e7eb"}`,
-                  borderRadius: "8px",
-                  fontSize: "12px"
-                }}
-              />
-              <Legend verticalAlign="bottom" height={36} />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <p className="text-center text-gray-500 py-12">No data to display.</p>
-        )}
-      </div>
-          </>
-        );
-    }
-  };
-
-  return (
-  <div
-    className={`flex h-screen transition-colors duration-300 ${
-      darkMode ? "bg-black text-white" : "bg-gray-50 text-black"
-    }`}
-  >
-    {/* Mobile Header */}
-    <div className={`lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between p-4 shadow-lg ${
-      darkMode ? "bg-black border-b border-gray-700" : "bg-white border-b border-gray-200"
-    }`}>
-      <h1 className="text-xl font-bold">Expenses Tracker</h1>
-      <div className="flex gap-2">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-        >
-          {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-        <button
-          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          className="p-2"
-        >
-          <Menu size={24}/>
-        </button>
-      </div>
-    </div>
-
-    {/* Mobile Sidebar Overlay */}
-    {isMobileSidebarOpen && (
-      <div className="lg:hidden fixed inset-0 z-50">
-        <div 
-          className="absolute inset-0 bg-black bg-opacity-50"
-          onClick={() => setIsMobileSidebarOpen(false)}
-        ></div>
-        <div className={`absolute left-0 top-0 bottom-0 w-64 shadow-lg ${
-          darkMode ? "bg-black" : "bg-white"
-        }`}>
-          <div className="flex items-center justify-between p-6">
-            <h1 className="text-xl font-bold">Expenses Tracker</h1>
-            <button
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="p-1"
-            >
-              <Menu size={20} />
-            </button>
-          </div>
-
-          <nav className="mt-6 flex flex-col gap-1 flex-1">
-            {sidebarItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleMobileNavClick(item.id)}
-                className={`w-full flex items-center p-4 transition-colors duration-200 ${
-                  activeTab === item.id
-                    ? darkMode
-                      ? "bg-gray-700/40 text-white border-r-4 border-purple-500"
-                      : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
-                    : darkMode
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`w-full flex items-center p-4 transition-colors duration-200 ${
+                activeTab === item.id
+                  ? darkMode
+                    ? "bg-gray-700/20 text-white border-r-4 border-purple-500"
+                    : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
+                  : darkMode
                     ? "text-gray-300 hover:bg-gray-700/40"
-                    : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-              >
-                <span className="text-lg">{item.icon}</span>
-                <span className="ml-3 font-medium">{item.label}</span>
-              </button>
-            ))}
-          </nav>
+                    : "text-gray-900 hover:bg-gray-100 hover:text-gray-900"
+              }`}
+            >
+              <span className="text-lg">{item.icon}</span>
+              {!isMinimized && <span className="ml-3 font-medium">{item.label}</span>}
+            </button>
+          ))}
+        </nav>
 
-          <div className="mt-auto p-4">
+        {/* Add Expense Button at Desktop Sidebar Bottom */}
+        <div className="mt-auto p-4">
+          <div className="relative group w-full">
             <button
               onClick={() => {
-              setActiveTab("all_expenses");
-              setShowForm(true);
-            }}
-              className="w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105"
+                setActiveTab("all_expenses")
+                setShowForm(true)
+              }}
+              className={`w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
+                isMinimized ? "px-2 text-xs" : ""
+              }`}
             >
-              + Add Expense
+              {isMinimized ? "+" : "+ Add Expense"}
             </button>
+
+            {/* Tooltip only when minimized */}
+            {isMinimized && (
+              <span className="mt-2 whitespace-nowrap rounded-lg bg-green-900/30 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                Add your expenses
+              </span>
+            )}
           </div>
         </div>
       </div>
-    )}
 
-    {/* Desktop Sidebar */}
-    <div
-      className={`hidden lg:flex shadow-lg flex-col transition-all duration-300 ${
-        darkMode ? "bg-black text-white" : "bg-white text-black"
-      } ${isMinimized ? "w-20" : "w-64"}`}
-    >
-      <div className="flex items-center justify-between pt-6 pb-6 pl-2">
-        {!isMinimized && (
-          <h1 className="text-xl font-bold">Expenses Tracker</h1>
-        )}
-        <div className="flex gap-1">
-          {/* Dark Mode Toggle */}
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-300/30 transition"
-          >
-            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-          >
-            <Menu size={24} />
-          </button>
-        </div>
-      </div>
-
-      {/* Desktop Sidebar Nav Items */}
-      <nav className="mt-6 flex flex-col gap-1 flex-1">
-        {sidebarItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`w-full flex items-center p-4 transition-colors duration-200 ${
-              activeTab === item.id
-                ? darkMode
-                  ? "bg-gray-700/20 text-white border-r-4 border-purple-500"
-                  : "bg-purple-100 text-purple-900 border-r-4 border-purple-900"
-                : darkMode
-                ? "text-gray-300 hover:bg-gray-700/40"
-                : "text-gray-900 hover:bg-gray-100 hover:text-gray-900"
-            }`}
-          >
-            <span className="text-lg">{item.icon}</span>
-            {!isMinimized && (
-              <span className="ml-3 font-medium">{item.label}</span>
-            )}
-          </button>
-        ))}
-      </nav>
-
-      {/* Add Expense Button at Desktop Sidebar Bottom */}
-      <div className="mt-auto p-4">
-        <div className="relative group w-full">
-          <button
-            onClick={() => {
-            setActiveTab("all_expenses");
-            setShowForm(true);
-          }}
-            className={`w-full bg-gradient-to-r from-green-500 to-green-900 hover:from-green-600 hover:to-green-700 text-white font-medium py-3 rounded-xl shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 ${
-              isMinimized ? "px-2 text-xs" : ""
-            }`}
-          >
-            {isMinimized ? "+" : "+ Add Expense"}
-          </button>
-
-          {/* Tooltip only when minimized */}
-          {isMinimized && (
-            <span className="mt-2 whitespace-nowrap rounded-lg bg-green-900/30 px-3 py-1 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              Add your expenses
-            </span>
-          )}
-        </div>
-      </div>
-
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto pt-16 lg:pt-5 p-4 lg:p-5">{renderContent()}</div>
     </div>
-
-    {/* Main Content */}
-    <div className="flex-1 overflow-y-auto pt-16 lg:pt-5 p-4 lg:p-5">
-      {renderContent()}
-    </div>
-  </div>
-  );
+  )
 }
