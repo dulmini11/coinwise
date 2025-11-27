@@ -449,9 +449,12 @@ export default function ExpensesPage() {
             {/* Hero Section */}
             <div className="text-center px-4 py-8">
               <div className="mb-6">
-                <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-green-500 bg-clip-text text-transparent mb-4">
-                  Coin Wish
-                </h1>
+              <h1
+                onClick={() => setActiveTab("home")}
+                className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-green-500 bg-clip-text text-transparent mb-4 cursor-pointer hover:opacity-80"
+              >
+                Coin Wish
+              </h1>
                 <p className="text-lg md:text-xl text-gray-600 dark:text-gray-500 max-w-2xl mx-auto">
                   Transform your financial dreams into reality. Track, analyze, and optimize your expenses with
                   intelligent insights.
@@ -460,7 +463,7 @@ export default function ExpensesPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <button
-                  onClick={() => setShowForm(true)}
+                  onClick={() => setActiveTab("all_expenses")}
                   className="bg-gradient-to-r from-purple-700/30 to-blue-700/80 hover:from-purple-800 hover:to-blue-900 text-white font-semibold py-3 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
                   Start Tracking
@@ -1456,7 +1459,12 @@ export default function ExpensesPage() {
           darkMode ? "bg-black border-b border-gray-700" : "bg-white border-b border-gray-200"
         }`}
       >
-        <h1 className="text-xl font-bold">Expenses Tracker</h1>
+        <h1
+          onClick={() => setActiveTab("home")}
+          className="text-xl font-bold cursor-pointer hover:opacity-80"
+        >
+          Coin Wish
+        </h1>
         <div className="flex gap-2">
           <button
             onClick={() => setDarkMode(!darkMode)}
@@ -1538,7 +1546,7 @@ export default function ExpensesPage() {
         } ${isMinimized ? "w-20" : "w-64"}`}
       >
         <div className="flex items-center justify-between pt-6 pb-6 pl-2">
-          {!isMinimized && <h1 className="text-xl font-bold">Expenses Tracker</h1>}
+          {!isMinimized && <h1 className="text-xl font-bold">Coin Wish</h1>}
           <div className="flex gap-1">
             {/* Dark Mode Toggle */}
             <button
