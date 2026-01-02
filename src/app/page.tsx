@@ -1151,7 +1151,9 @@ export default function ExpensesPage() {
                                 className="rounded"
                               />
                             </td>
-                            <td className="px-6 py-4 font-medium">{exp.title}</td>
+                            <td className="px-6 py-4 font-medium">
+                              {exp.title.charAt(0).toUpperCase() + exp.title.slice(1).toLowerCase()}
+                            </td>
                             <td className="px-6 py-4">{exp.category}</td>
                             <td className="px-6 py-4 font-semibold">Rs.{exp.amount}</td>
                             <td className="px-6 py-4 text-sm text-gray-500">{new Date(exp.date).toDateString()}</td>
@@ -1198,7 +1200,9 @@ export default function ExpensesPage() {
                               className="rounded"
                             />
                             <div>
-                              <h3 className="font-semibold text-lg">{exp.title}</h3>
+                              <h3 className="font-semibold text-lg">
+                                {exp.title.charAt(0).toUpperCase() + exp.title.slice(1).toLowerCase()}
+                              </h3>
                               <p className="text-sm text-gray-500">{exp.category}</p>
                             </div>
                           </div>
